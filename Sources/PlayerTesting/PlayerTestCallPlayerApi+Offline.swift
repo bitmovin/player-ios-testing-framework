@@ -7,6 +7,7 @@
 //
 
 import OHHTTPStubs
+import OHHTTPStubsSwift
 
 extension PlayerTestCallPlayerApi {
     /// This stubs all requests made via standard iOS network APIs (URLSession, URLConnection)
