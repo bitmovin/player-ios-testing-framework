@@ -7,7 +7,6 @@
 //
 
 import BitmovinPlayer
-//import BitmovinPlayerTestsFramework
 import Foundation
 import XCTest
 
@@ -42,21 +41,57 @@ class PlayerTest {
 
 // swiftlint:disable:this function_default_parameter_at_end
 extension PlayerTest: PlayerTestLifecycleApi {
+#if targetEnvironment(simulator)
     func startPlayerTest(
         config: PlayerConfig = PlayerConfig(),
         buildViewHierarchyMode: ViewHierarchyBuildMode,
         globalTimeout: TimeInterval = defaultGlobalTimeout,
         heartbeatWindow: TimeInterval? = nil,
         failOnError failOnErrorEnabled: Bool = true,
-        setLicenseKeyForTesting: Bool = true,
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
     ) {
-        if setLicenseKeyForTesting, config.key == nil {
-            // Override the LicenseKey for testing
-            config.key = playerLicenseKeyForTesting
+        player = PlayerFactory.create(playerConfig: config)
+        playerView = buildPlayerView(mode: buildViewHierarchyMode)
+
+        addGlobalTimeoutQueueItem(
+            globalTimeout: globalTimeout,
+            file: file,
+            line: line
+        )
+        maybeAddHeartbeatWindowQueueItem(
+            heartbeatWindow: heartbeatWindow,
+            file: file,
+            line: line
+        )
+
+        if failOnErrorEnabled {
+            failOnErrorEvent(file: file, line: line, testBlock)
+        } else {
+            testBlock()
         }
+
+        globalTimeoutQueueItem?.cancel()
+        heartbeatWindowQueueItem?.cancel()
+        if let heartbeatWindowEventListenerProxy = heartbeatWindowEventListenerProxy {
+            player.remove(listener: heartbeatWindowEventListenerProxy)
+        }
+        heartbeatWindowEventListenerProxy = nil
+    }
+#else
+    func startPlayerTest(
+        licenseKeyForTesting: String,
+        config: PlayerConfig = PlayerConfig(),
+        buildViewHierarchyMode: ViewHierarchyBuildMode,
+        globalTimeout: TimeInterval = defaultGlobalTimeout,
+        heartbeatWindow: TimeInterval? = nil,
+        failOnError failOnErrorEnabled: Bool = true,
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ testBlock: PlayerTestBlock
+    ) {
+        config.key = licenseKeyForTesting
 
         player = PlayerFactory.create(playerConfig: config)
         playerView = buildPlayerView(mode: buildViewHierarchyMode)
@@ -85,6 +120,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
         }
         heartbeatWindowEventListenerProxy = nil
     }
+#endif
 
     private func buildPlayerView(mode: ViewHierarchyBuildMode) -> PlayerView? {
         switch mode {

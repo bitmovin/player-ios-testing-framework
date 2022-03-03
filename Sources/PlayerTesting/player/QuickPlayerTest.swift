@@ -22,13 +22,13 @@ open class QuickPlayerTest: QuickSpec {
 
 // swiftlint:disable:this function_default_parameter_at_end
 extension QuickPlayerTest: PlayerTestApi {
+#if targetEnvironment(simulator)
     public func startPlayerTest(
         config: PlayerConfig = PlayerConfig(),
         buildViewHierarchyMode: ViewHierarchyBuildMode = .none,
         globalTimeout: TimeInterval = defaultGlobalTimeout,
         heartbeatWindow: TimeInterval? = nil,
         failOnError failOnErrorEnabled: Bool = true,
-        setLicenseKeyForTesting: Bool = true,
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
@@ -44,7 +44,6 @@ extension QuickPlayerTest: PlayerTestApi {
             globalTimeout: globalTimeout,
             heartbeatWindow: heartbeatWindow,
             failOnError: failOnErrorEnabled,
-            setLicenseKeyForTesting: setLicenseKeyForTesting,
             file: file,
             line: line,
             testBlock
@@ -53,6 +52,39 @@ extension QuickPlayerTest: PlayerTestApi {
         playerTest?.tearDown()
         playerTest = nil
     }
+#else
+    public func startPlayerTest(
+        licenseKeyForTesting: String,
+        config: PlayerConfig = PlayerConfig(),
+        buildViewHierarchyMode: ViewHierarchyBuildMode = .none,
+        globalTimeout: TimeInterval = defaultGlobalTimeout,
+        heartbeatWindow: TimeInterval? = nil,
+        failOnError failOnErrorEnabled: Bool = true,
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ testBlock: PlayerTestBlock
+    ) {
+        // In case the previous test failed, we need to do the tear down here
+        playerTest?.tearDown()
+
+        playerTest = PlayerTest()
+
+        playerTest?.startPlayerTest(
+            licenseKeyForTesting: licenseKeyForTesting,
+            config: config,
+            buildViewHierarchyMode: buildViewHierarchyMode,
+            globalTimeout: globalTimeout,
+            heartbeatWindow: heartbeatWindow,
+            failOnError: failOnErrorEnabled,
+            file: file,
+            line: line,
+            testBlock
+        )
+
+        playerTest?.tearDown()
+        playerTest = nil
+    }
+#endif
 
     public func expectEvent<T: PlayerEvent>(
         _ eventClass: T.Type,

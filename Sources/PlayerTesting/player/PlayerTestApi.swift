@@ -36,17 +36,30 @@ protocol PlayerTestLifecycleApi {
     ///   - failOnError: defines if tests should fail when receiving an error event
     ///   - setLicenseKeyForTesting: defines if a license key will be ensured if non is set in player config
     ///   - testBlock: test block to be executed
+#if targetEnvironment(simulator)
     func startPlayerTest(
         config: PlayerConfig,
         buildViewHierarchyMode: ViewHierarchyBuildMode,
         globalTimeout: TimeInterval,
         heartbeatWindow: TimeInterval?,
         failOnError failOnErrorEnabled: Bool,
-        setLicenseKeyForTesting: Bool,
         file: StaticString,
         line: UInt,
         _ testBlock: PlayerTestBlock
     )
+#else
+    func startPlayerTest(
+        licenseKeyForTesting: String,
+        config: PlayerConfig,
+        buildViewHierarchyMode: ViewHierarchyBuildMode,
+        globalTimeout: TimeInterval,
+        heartbeatWindow: TimeInterval?,
+        failOnError failOnErrorEnabled: Bool,
+        file: StaticString,
+        line: UInt,
+        _ testBlock: PlayerTestBlock
+    )
+#endif
 }
 
 protocol PlayerTestSingleEventExpectationApi {
