@@ -39,11 +39,11 @@
       },
       {
         "package": "BitmovinPlayer",
-        "repositoryURL": "https://github.com/bitmovin-engineering/player-ios-tvos",
+        "repositoryURL": "https://github.com/bitmovin/player-ios",
         "state": {
           "branch": null,
-          "revision": "6c374b308d17575204c2eb6d2a16086d6ce19374",
-          "version": "3.0.0"
+          "revision": "77b84e3e87368a6440a8ab5eb76f7a3df4c6639d",
+          "version": "3.15.0"
         }
       },
       {

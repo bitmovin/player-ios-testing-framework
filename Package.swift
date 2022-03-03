@@ -15,7 +15,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name: "BitmovinPlayer", url: "https://github.com/bitmovin-engineering/player-ios-tvos", from: "3.0.0"),
+        .package(name: "BitmovinPlayer", url: "https://github.com/bitmovin/player-ios", from: "3.15.0"),
         .package(url: "https://github.com/Quick/Nimble", from: "9.0.0"),
         .package(url: "https://github.com/Quick/Quick", from: "4.0.0"),
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", from: "9.0.0"),
