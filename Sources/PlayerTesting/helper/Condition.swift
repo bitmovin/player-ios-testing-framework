@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 
 public class Condition {
-    var isCancelled: Bool = false
+    var isCancelled = false
     var isFulfilled: Bool {
         expectation.expectedFulfillmentCount == actualFulfillmentCount
     }

@@ -6,16 +6,16 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 import XCTest
 
 public typealias PlayerTestBlock = () -> Void
 
 public let defaultGlobalTimeout: TimeInterval = 30_000
-let defaultTimeout = 10.0
+internal let defaultTimeout = 10.0
 
-class PlayerTest {
+internal final class PlayerTest {
     var appBundleMock: Bundle?
     var player: Player!
     var playerView: PlayerView?
@@ -41,57 +41,21 @@ class PlayerTest {
 
 // swiftlint:disable:this function_default_parameter_at_end
 extension PlayerTest: PlayerTestLifecycleApi {
-#if targetEnvironment(simulator)
     func startPlayerTest(
         config: PlayerConfig = PlayerConfig(),
         buildViewHierarchyMode: ViewHierarchyBuildMode,
         globalTimeout: TimeInterval = defaultGlobalTimeout,
         heartbeatWindow: TimeInterval? = nil,
         failOnError failOnErrorEnabled: Bool = true,
+        setLicenseKeyForTesting: Bool = true,
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
     ) {
-        player = PlayerFactory.create(playerConfig: config)
-        playerView = buildPlayerView(mode: buildViewHierarchyMode)
-
-        addGlobalTimeoutQueueItem(
-            globalTimeout: globalTimeout,
-            file: file,
-            line: line
-        )
-        maybeAddHeartbeatWindowQueueItem(
-            heartbeatWindow: heartbeatWindow,
-            file: file,
-            line: line
-        )
-
-        if failOnErrorEnabled {
-            failOnErrorEvent(file: file, line: line, testBlock)
-        } else {
-            testBlock()
+        if setLicenseKeyForTesting, config.key == nil {
+            // Override the LicenseKey for testing
+            config.key = playerLicenseKeyForTesting
         }
-
-        globalTimeoutQueueItem?.cancel()
-        heartbeatWindowQueueItem?.cancel()
-        if let heartbeatWindowEventListenerProxy = heartbeatWindowEventListenerProxy {
-            player.remove(listener: heartbeatWindowEventListenerProxy)
-        }
-        heartbeatWindowEventListenerProxy = nil
-    }
-#else
-    func startPlayerTest(
-        licenseKeyForTesting: String,
-        config: PlayerConfig = PlayerConfig(),
-        buildViewHierarchyMode: ViewHierarchyBuildMode,
-        globalTimeout: TimeInterval = defaultGlobalTimeout,
-        heartbeatWindow: TimeInterval? = nil,
-        failOnError failOnErrorEnabled: Bool = true,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ testBlock: PlayerTestBlock
-    ) {
-        config.key = licenseKeyForTesting
 
         player = PlayerFactory.create(playerConfig: config)
         playerView = buildPlayerView(mode: buildViewHierarchyMode)
@@ -115,24 +79,30 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
         globalTimeoutQueueItem?.cancel()
         heartbeatWindowQueueItem?.cancel()
-        if let heartbeatWindowEventListenerProxy = heartbeatWindowEventListenerProxy {
+        if let heartbeatWindowEventListenerProxy {
             player.remove(listener: heartbeatWindowEventListenerProxy)
         }
         heartbeatWindowEventListenerProxy = nil
     }
-#endif
 
     private func buildPlayerView(mode: ViewHierarchyBuildMode) -> PlayerView? {
         switch mode {
-        case .viewOnly:
+        case .viewOnly(let playerViewConfig):
             return PlayerView(
                 player: player,
-                frame: CGRect(origin: .zero, size: CGSize(width: 320, height: 480))
+                frame: .zero,
+                playerViewConfig: playerViewConfig
             )
-        case .full:
+        case .full(let playerViewConfig):
             let viewController = buildViewController()
-            let playerView = PlayerView(player: player, frame: viewController.view.frame)
-            viewController.view.addSubview(playerView)
+            let playerView = PlayerView(
+                player: player,
+                frame: .zero,
+                playerViewConfig: playerViewConfig
+            )
+
+            playerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            viewController.view = playerView
             return playerView
         case .none:
             return nil
@@ -162,12 +132,12 @@ extension PlayerTest: PlayerTestLifecycleApi {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        guard let heartbeatWindow = heartbeatWindow else {
+        guard let heartbeatWindow else {
             return
         }
 
         let handleHeartbeat = { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             self.heartbeatWindowQueueItem?.cancel()
             self.heartbeatWindowQueueItem = nil
 
@@ -214,7 +184,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
 // MARK: - Single event handling
 extension PlayerTest: PlayerTestSingleEventExpectationApi {
-    public func expectEvent<T: Event>(
+    internal func expectEvent<T: Event>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -230,7 +200,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         )
     }
 
-    public func expectEvent<T: Event>(
+    internal func expectEvent<T: Event>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -244,80 +214,6 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
             line: line,
             eventHandlerBlock: eventHandlerBlock
         )
-    }
-
-    public func expectEvent<T: SourceEvent>(
-        source: Source,
-        _ eventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectSourceEventBlocking(
-            source: source,
-            singleEventExpectation: eventExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func expectEvent<T: SourceEvent>(
-        source: Source,
-        _ eventClass: T.Type,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectSourceEventBlocking(
-            source: source,
-            singleEventExpectation: PlainEventExpectation(eventClass),
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    private func expectSourceEventBlocking<T: SourceEvent>(
-        source: Source,
-        singleEventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil,
-        onListenerAttachedBlock: (() -> Void)? = nil
-    ) {
-        let eventListenerProxy = SourceEventListenerProxy()
-        source.add(listener: eventListenerProxy)
-
-        let eventClass = singleEventExpectation.eventClass
-        let condition = Condition(description: String(describing: eventClass))
-
-        try? eventListenerProxy.registerEvent(T.self) { (event: T, source: Source) in
-            if singleEventExpectation.maybeFulfillExpectation(
-                receivedEvent: EventHolder(source: source, event: event)
-            ) {
-                eventHandlerBlock?(event)
-                condition.fulfill()
-            }
-        }
-
-        onListenerAttachedBlock?()
-
-        activeConditions.append(condition)
-        condition.wait(timeout: timeout)
-        activeConditions.removeAll { $0 === condition }
-
-        eventListenerProxy.unregisterEvent(eventClass)
-        source.remove(listener: eventListenerProxy)
-
-        if !condition.isFulfilled {
-            XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
-        }
     }
 
     private func expectEventBlocking<T: Event>(
@@ -380,23 +276,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
 
 // MARK: - Multiple events handling
 extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
-    public func expectEvents(
-        _ eventClasses: Event.Type...,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([Event]) -> Void)? = nil
-    ) {
-        expectEvents(
-            eventClasses,
-            timeout: timeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func expectEvents(
+    internal func expectEvents(
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -412,7 +292,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         )
     }
 
-    public func expectEvents(
+    internal func expectEvents(
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -426,107 +306,6 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             line: line,
             eventHandlerBlock: eventHandlerBlock
         )
-    }
-
-    public func expectEvents(
-        source: Source,
-        _ eventClasses: SourceEvent.Type...,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        expectEvents(
-            source: source,
-            eventClasses,
-            timeout: timeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func expectEvents(
-        source: Source,
-        _ eventClasses: [SourceEvent.Type],
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        expectEvents(
-            source: source,
-            EventSequenceExpectation(eventClasses),
-            timeout: timeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func expectEvents(
-        source: Source,
-        _ multipleEventExpectation: MultipleEventsExpectation,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        expectSourceEventsBlocking(
-            source: source,
-            multipleEventsExpectation: multipleEventExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    private func expectSourceEventsBlocking(
-        source: Source,
-        multipleEventsExpectation: MultipleEventsExpectation,
-        timeout: TimeInterval,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil,
-        onListenerAttachedBlock: (() -> Void)? = nil
-    ) {
-        let eventListenerProxy = SourceEventListenerProxy()
-        source.add(listener: eventListenerProxy)
-
-        var recordedEvents: [SourceEvent] = []
-        let condition = Condition(description: "\(multipleExpectation: multipleEventsExpectation)")
-        condition.expectedFulfillmentCount = multipleEventsExpectation.singleExpectations.count
-
-        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
-            try? eventListenerProxy
-                .registerEvent(singleEventExpectation.eventClass) { (event: SourceEvent, source: Source) in
-                    if multipleEventsExpectation.isNextExpectationMet(
-                        receivedEvent: EventHolder(source: source, event: event)
-                    ) {
-                        recordedEvents.append(event)
-                        condition.fulfill()
-                    }
-                    condition.description = "\(multipleExpectation: multipleEventsExpectation)"
-                }
-        }
-
-        onListenerAttachedBlock?()
-
-        activeConditions.append(condition)
-        condition.wait(timeout: timeout)
-        activeConditions.removeAll { $0 === condition }
-
-        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
-            eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
-        }
-        source.remove(listener: eventListenerProxy)
-
-        if condition.isFulfilled {
-            eventHandlerBlock?(recordedEvents)
-        } else {
-            XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
-        }
     }
 
     // This methods handles Player and Source event expectations
@@ -597,7 +376,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
 
 // MARK: - Reject event handling
 extension PlayerTest: PlayerTestRejectEventApi {
-    public func rejectEvent<T: Event>(
+    internal func rejectEvent<T: Event>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
@@ -611,7 +390,7 @@ extension PlayerTest: PlayerTestRejectEventApi {
         )
     }
 
-    public func rejectEvent<T: Event>(
+    internal func rejectEvent<T: Event>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -623,72 +402,6 @@ extension PlayerTest: PlayerTestRejectEventApi {
             singleEventExpectation: eventExpectation,
             testContinuationBlock: testContinuationBlock
         )
-    }
-
-    public func rejectEvent<T: SourceEvent>(
-        source: Source,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEvent(
-            source: source,
-            file: file,
-            line: line,
-            PlainSourceEventExpectation(
-                source,
-                eventClass
-            ),
-            testContinuationBlock
-        )
-    }
-
-    public func rejectEvent<T: SourceEvent>(
-        source: Source,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectSourceEventBlocking(
-            source: source,
-            file: file,
-            line: line,
-            singleEventExpectation: eventExpectation,
-            testContinuationBlock: testContinuationBlock
-        )
-    }
-
-    private func rejectSourceEventBlocking<T: SourceEvent>(
-        source: Source,
-        file: StaticString,
-        line: UInt,
-        singleEventExpectation: SingleEventExpectation<T>,
-        testContinuationBlock: () -> Void
-    ) {
-        let eventListenerProxy = SourceEventListenerProxy()
-        source.add(listener: eventListenerProxy)
-
-        let eventClass = singleEventExpectation.eventClass
-        let expectation = PlayerTestExpectation()
-
-        try? eventListenerProxy.registerEvent(eventClass) { (event: T, source: Source) in
-            if singleEventExpectation.maybeFulfillExpectation(
-                receivedEvent: EventHolder(source: source, event: event)
-            ) {
-                expectation.reject(
-                    "Received rejected event: '\(String(describing: eventClass))'",
-                    file: file,
-                    line: line
-                )
-            }
-        }
-
-        testContinuationBlock()
-
-        eventListenerProxy.unregisterEvent(eventClass)
-        source.remove(listener: eventListenerProxy)
     }
 
     private func rejectEventBlocking<T: Event>(
@@ -725,21 +438,7 @@ extension PlayerTest: PlayerTestRejectEventApi {
 
 // MARK: - Reject events handling
 extension PlayerTest: PlayerTestRejectEventsApi {
-    public func rejectEvents(
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventClasses: Event.Type...,
-        testContinuationBlock: () -> Void
-    ) {
-        rejectEvents(
-            file: file,
-            line: line,
-            eventClasses,
-            testContinuationBlock
-        )
-    }
-
-    public func rejectEvents(
+    internal func rejectEvents(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClasses: [Event.Type],
@@ -753,7 +452,7 @@ extension PlayerTest: PlayerTestRejectEventsApi {
         )
     }
 
-    public func rejectEvents(
+    internal func rejectEvents(
         file: StaticString = #file,
         line: UInt = #line,
         _ multipleEventExpectation: MultipleEventsExpectation,
@@ -765,90 +464,6 @@ extension PlayerTest: PlayerTestRejectEventsApi {
             multipleEventsExpectation: multipleEventExpectation,
             testContinuationBlock: testContinuationBlock
         )
-    }
-
-    public func rejectEvents(
-        source: Source,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventClasses: SourceEvent.Type...,
-        testContinuationBlock: () -> Void
-    ) {
-        rejectEvents(
-            source: source,
-            file: file,
-            line: line,
-            eventClasses,
-            testContinuationBlock
-        )
-    }
-
-    public func rejectEvents(
-        source: Source,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventClasses: [SourceEvent.Type],
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEvents(
-            source: source,
-            file: file,
-            line: line,
-            EventSequenceExpectation(eventClasses),
-            testContinuationBlock
-        )
-    }
-
-    public func rejectEvents(
-        source: Source,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ multipleEventExpectation: MultipleEventsExpectation,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectSourceEventsBlocking(
-            source: source,
-            file: file,
-            line: line,
-            multipleEventsExpectation: multipleEventExpectation,
-            testContinuationBlock: testContinuationBlock
-        )
-    }
-
-    private func rejectSourceEventsBlocking(
-        source: Source,
-        file: StaticString,
-        line: UInt,
-        multipleEventsExpectation: MultipleEventsExpectation,
-        testContinuationBlock: () -> Void
-    ) {
-        let eventListenerProxy = SourceEventListenerProxy()
-        source.add(listener: eventListenerProxy)
-
-        let expectation = PlayerTestExpectation()
-        expectation.assertAtRejectCount = multipleEventsExpectation.singleExpectations.count
-
-        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
-            try? eventListenerProxy
-                .registerEvent(singleEventExpectation.eventClass) { (event: SourceEvent, source: Source) in
-                    if multipleEventsExpectation.isNextExpectationMet(
-                        receivedEvent: EventHolder(source: source, event: event)
-                    ) {
-                        expectation.reject(
-                            "Received rejected source events: \(multipleExpectation: multipleEventsExpectation)",
-                            file: file,
-                            line: line
-                        )
-                    }
-                }
-        }
-
-        testContinuationBlock()
-
-        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
-            eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
-        }
-        source.remove(listener: eventListenerProxy)
     }
 
     private func rejectEventsBlocking(
@@ -889,7 +504,7 @@ extension PlayerTest: PlayerTestRejectEventsApi {
 
 // MARK: - Call player handling
 extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
-    public func callPlayerAndExpectEvent<T: Event>(
+    internal func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping (Player) -> Void,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
@@ -908,7 +523,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         }
     }
 
-    public func callPlayerAndExpectEvent<T: Event>(
+    internal func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping (Player) -> Void,
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
@@ -927,49 +542,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         }
     }
 
-    public func callPlayerAndExpectEvent<T: SourceEvent>(
-        source: Source,
-        _ playerBlock: @escaping (Player) -> Void,
-        _ eventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectSourceEventBlocking(
-            source: source,
-            singleEventExpectation: eventExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        ) {
-            self.callPlayer(playerBlock)
-        }
-    }
-
-    public func callPlayerAndExpectEvent<T: SourceEvent>(
-        source: Source,
-        _ playerBlock: @escaping (Player) -> Void,
-        _ eventClass: T.Type,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        callPlayerAndExpectEvent(
-            source: source,
-            playerBlock,
-            PlainSourceEventExpectation(source, eventClass),
-            timeout: timeout,
-            file: file,
-            line: line
-        ) { event in
-            eventHandlerBlock?(event)
-        }
-    }
-
-    public func callPlayerAndExpectEvents(
+    internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping (Player) -> Void,
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
@@ -987,25 +560,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         )
     }
 
-    public func callPlayerAndExpectEvents(
-        _ playerBlock: @escaping (Player) -> Void,
-        _ eventClasses: Event.Type...,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([Event]) -> Void)? = nil
-    ) {
-        callPlayerAndExpectEvents(
-            playerBlock,
-            EventSequenceExpectation(eventClasses),
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func callPlayerAndExpectEvents(
+    internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping (Player) -> Void,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
@@ -1023,92 +578,32 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
             self.callPlayer(playerBlock)
         }
     }
-
-    public func callPlayerAndExpectEvents(
-        source: Source,
-        _ playerBlock: @escaping (Player) -> Void,
-        _ eventClasses: [SourceEvent.Type],
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        callPlayerAndExpectEvents(
-            source: source,
-            playerBlock,
-            EventSequenceExpectation(eventClasses),
-            timeout: timeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func callPlayerAndExpectEvents(
-        source: Source,
-        _ playerBlock: @escaping (Player) -> Void,
-        _ eventClasses: SourceEvent.Type...,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        callPlayerAndExpectEvents(
-            source: source,
-            playerBlock,
-            eventClasses,
-            timeout: timeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        )
-    }
-
-    public func callPlayerAndExpectEvents(
-        source: Source,
-        _ playerBlock: @escaping (Player) -> Void,
-        _ multipleEventsExpectation: MultipleEventsExpectation,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([SourceEvent]) -> Void)? = nil
-    ) {
-        expectSourceEventsBlocking(
-            source: source,
-            multipleEventsExpectation: multipleEventsExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
-        ) {
-            self.callPlayer(playerBlock)
-        }
-    }
 }
 
 extension PlayerTest: PlayerTestCallPlayerApi {
-    public func callPlayer(_ playerBlock: @escaping (Player) -> Void) {
+    internal func callPlayer(_ playerBlock: @escaping (Player) -> Void) {
         playerBlock(player)
     }
 
-    public func verifyPlayer(_ playerBlock: @escaping (Player) -> Void) {
+    internal func verifyPlayer(_ playerBlock: @escaping (Player) -> Void) {
         playerBlock(player)
     }
 
-    public func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
+    internal func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
         playerBlock(player)
     }
 }
 
 // MARK: - Convenience helpers
 extension PlayerTest: PlayerTestConvenienceApi {
-    public func createSource(sourceConfig: SourceConfig) -> Source {
+    internal func createSource(sourceConfig: SourceConfig) -> Source {
         SourceFactory.create(from: sourceConfig)
     }
 
-    public func load(
+    internal func load(
         _ source: Source,
         preloadAllSources: Bool = false,
+        replayMode: ReplayMode = .playlist,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -1116,30 +611,37 @@ extension PlayerTest: PlayerTestConvenienceApi {
         load(
             [source],
             preloadAllSources: preloadAllSources,
+            replayMode: replayMode,
             timeout: timeout,
             file: file,
             line: line
         )
     }
 
-    public func load(
+    internal func load(
         _ sources: [Source],
         preloadAllSources: Bool = false,
+        replayMode: ReplayMode = .playlist,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line
     ) {
+        let options = PlaylistOptions(
+            preloadAllSources: preloadAllSources,
+            replayMode: replayMode
+        )
         load(
-            PlaylistConfig(sources: sources, options: PlaylistOptions(preloadAllSources: preloadAllSources)),
+            PlaylistConfig(sources: sources, options: options),
             timeout: timeout,
             file: file,
             line: line
         )
     }
 
-    public func load(
+    internal func load(
         _ sourceConfig: SourceConfig,
         preloadAllSources: Bool = false,
+        replayMode: ReplayMode = .playlist,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -1147,15 +649,17 @@ extension PlayerTest: PlayerTestConvenienceApi {
         load(
             [sourceConfig],
             preloadAllSources: preloadAllSources,
+            replayMode: replayMode,
             timeout: timeout,
             file: file,
             line: line
         )
     }
 
-    public func load(
+    internal func load(
         _ sourceConfigs: [SourceConfig],
         preloadAllSources: Bool = false,
+        replayMode: ReplayMode = .playlist,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line
@@ -1163,18 +667,20 @@ extension PlayerTest: PlayerTestConvenienceApi {
         load(
             sourceConfigs.map { createSource(sourceConfig: $0) },
             preloadAllSources: preloadAllSources,
+            replayMode: replayMode,
             timeout: timeout,
             file: file,
             line: line
         )
     }
 
-    public func load(
+    internal func load(
         _ playlistConfig: PlaylistConfig,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line
     ) {
+        // swiftlint:disable:next multiline_arguments_brackets
         callPlayerAndExpectEvent({ player in
                 player.load(playlistConfig: playlistConfig)
             },
@@ -1185,7 +691,7 @@ extension PlayerTest: PlayerTestConvenienceApi {
         )
     }
 
-    public func play(
+    internal func play(
         for time: TimeInterval,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -1199,7 +705,7 @@ extension PlayerTest: PlayerTestConvenienceApi {
         )
     }
 
-    public func play(
+    internal func play(
         until time: TimeInterval,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -1220,7 +726,7 @@ extension PlayerTest: PlayerTestConvenienceApi {
         }
     }
 
-    public func wait(for time: TimeInterval) {
+    internal func wait(for time: TimeInterval) {
         let condition = Condition(description: "wait for")
 
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .milliseconds(Int(time * 1_000))) {
@@ -1232,7 +738,7 @@ extension PlayerTest: PlayerTestConvenienceApi {
         activeConditions.removeAll { $0 === condition }
     }
 
-    public func wait(
+    internal func wait(
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
@@ -1257,30 +763,98 @@ extension PlayerTest: PlayerTestConvenienceApi {
         }
     }
 
-    public func deallocPlayer() {
+    internal func deallocPlayer() {
         player = nil
     }
+}
 
-    public func trackStalling(_ trackingBlock: (StallingHistory) -> Void) {
-        let eventListenerProxy = EventListenerProxy()
-        player.add(listener: eventListenerProxy)
+// MARK: - PlayerView Testing
+extension PlayerTest: PlayerViewTest {
+    func callPlayerViewAndExpectEvents(
+        _ playerViewBlock: @escaping (PlayerView) -> Void,
+        _ multipleEventsExpectation: MultipleEventsExpectation,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        eventHandlerBlock: (([Event]) -> Void)? = nil
+    ) {
+        expectPlayerViewEventsBlocking(
+            multipleEventsExpectation: multipleEventsExpectation,
+            timeout: timeout ?? defaultTimeout,
+            file: file,
+            line: line,
+            eventHandlerBlock: eventHandlerBlock
+        ) {
+            self.callPlayerView(playerViewBlock)
+        }
+    }
 
-        let stallingHistory = StallingHistory()
-
-        try? eventListenerProxy.registerEvent(StallStartedEvent.self) { event in
-            stallingHistory.trackStallStarted(event: event)
+    internal func callPlayerView(
+        _ playerViewBlock: @escaping (PlayerView) -> Void,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        guard let playerView else {
+            XCTFail("No `PlayerView` was created for this test case!", file: file, line: line)
+            return
         }
 
-        try? eventListenerProxy.registerEvent(StallEndedEvent.self) { event in
-            stallingHistory.trackStallEnded(event: event)
+        playerViewBlock(playerView)
+    }
+
+    private func expectPlayerViewEventsBlocking(
+        multipleEventsExpectation: MultipleEventsExpectation,
+        timeout: TimeInterval,
+        file: StaticString = #file,
+        line: UInt = #line,
+        eventHandlerBlock: (([Event]) -> Void)? = nil,
+        onListenerAttachedBlock: (() -> Void)? = nil
+    ) {
+        guard let playerView else {
+            XCTFail("No `PlayerView` was created for this test case!", file: file, line: line)
+            return
         }
 
-        trackingBlock(stallingHistory)
+        let eventListenerProxy = PlayerViewEventListenerProxy()
+        playerView.add(listener: eventListenerProxy)
 
-        eventListenerProxy.unregisterEvent(StallStartedEvent.self)
-        eventListenerProxy.unregisterEvent(StallEndedEvent.self)
+        var recordedEvents: [Event] = []
+        let condition = Condition(description: "\(multipleExpectation: multipleEventsExpectation)")
+        condition.expectedFulfillmentCount = multipleEventsExpectation.expectedFulfillmentCount
 
-        player?.remove(listener: eventListenerProxy)
+        let eventExpectationBlock: (EventHolder<Event>) -> Void = { eventHolder in
+            if multipleEventsExpectation.isNextExpectationMet(
+                receivedEvent: eventHolder
+            ) {
+                recordedEvents.append(eventHolder.event)
+                condition.fulfill()
+            }
+            condition.description = "\(multipleExpectation: multipleEventsExpectation)"
+        }
+
+        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
+            try? eventListenerProxy.registerEvent(singleEventExpectation.eventClass) { event in
+                eventExpectationBlock(EventHolder(event: event))
+            }
+        }
+
+        onListenerAttachedBlock?()
+
+        activeConditions.append(condition)
+        condition.wait(timeout: timeout)
+        activeConditions.removeAll { $0 === condition }
+
+        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
+            eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
+        }
+
+        playerView.remove(listener: eventListenerProxy)
+
+        if condition.isFulfilled {
+            eventHandlerBlock?(recordedEvents)
+        } else {
+            XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
+        }
     }
 }
 
@@ -1309,7 +883,7 @@ private extension PlayerTest {
     private func cleanupTestData() {
         // This can happen from tests which are not using the PlayerTest features but extending it
         if player != nil {
-            if let heartbeatWindowEventListenerProxy = heartbeatWindowEventListenerProxy {
+            if let heartbeatWindowEventListenerProxy {
                 player.remove(listener: heartbeatWindowEventListenerProxy)
             }
             player.destroy()

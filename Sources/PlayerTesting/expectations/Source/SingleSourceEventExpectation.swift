@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// Represents an expectation for a specific scenario involving one [SourceEvent]

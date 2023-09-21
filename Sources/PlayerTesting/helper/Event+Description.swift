@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 internal extension Event {
@@ -24,12 +24,14 @@ internal extension Event {
                 code: \(errorEvent.code.rawValue), \
                 message: '\(errorEvent.message)'
                 """
+#if os(iOS)
         case let errorEvent as OfflineErrorEvent:
             return """
                 '\(String(describing: type(of: self)))' \
                 code: \(errorEvent.code.rawValue), \
                 message: '\(errorEvent.message)'
                 """
+#endif
         default:
             return String(describing: type(of: self))
         }

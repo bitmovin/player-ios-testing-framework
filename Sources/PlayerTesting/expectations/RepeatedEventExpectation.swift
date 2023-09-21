@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect a given eventType to happen multiple times

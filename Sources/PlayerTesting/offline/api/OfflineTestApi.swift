@@ -6,14 +6,14 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 import XCTest
 
 public typealias OfflineContentManagerTestBlock = (OfflineContentManager) -> Void
 public typealias OfflineTestBlock = () throws -> Void
 
-typealias OfflineTestApi =
+internal typealias OfflineTestApi =
     OfflineTestLifecycleApi &
     OfflineTestSingleEventExpectationApi &
     OfflineTestMultipleEventsExpectationApi &
@@ -22,16 +22,7 @@ typealias OfflineTestApi =
     OfflineTestConvenienceApi
 
 /// Provides all necessary API to conveniently write system tests for the Offline feature
-protocol OfflineTestLifecycleApi {
-    /// Starts the OfflineTest by creating a `OfflineManager` instance and executes the `testBlock`
-    /// - Parameters:
-    ///   - offlineConfig: offline config to use with the `OfflineManager`
-    ///   - failOnError: defines if tests should fail when receiving an error event
-    ///   - waitForSuspendedDownloadsRestoring: defines if `testBlock` should wait for
-    ///   estoring offline downlaods to finish
-    ///   - file: The file to use for the log
-    ///   - line: The line use for the log
-    ///   - testBlock: test block to be executed
+internal protocol OfflineTestLifecycleApi {
     func startOfflineTest(
         offlineConfig: OfflineConfig,
         failOnError failOnErrorEnabled: Bool,
@@ -42,11 +33,7 @@ protocol OfflineTestLifecycleApi {
     )
 }
 
-protocol OfflineTestCallOfflineContentManagerAndExpectApi {
-    /// Starts listening for the specified offline Event before executing the passed `offlineContentManagerBlock`.
-    /// When the event is received, the `eventHandlerBlock` is called. This is the race-condition-safe
-    /// version of calling `callOfflineContentManager` and `expectEvent` after that.
-    /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
+internal protocol OfflineTestCallOfflineContentManagerAndExpectApi {
     func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
@@ -57,11 +44,6 @@ protocol OfflineTestCallOfflineContentManagerAndExpectApi {
         eventHandlerBlock: ((T) -> Void)?
     )
 
-    /// Starts listening for the specified `SingleEventExpectation` before executing the passed
-    /// `offlineContentManagerBlock`.
-    /// When the event is received, the `eventHandlerBlock` is called. This is the race-condition-safe
-    /// version of calling `callOfflineContentManager` and `expectEvent` after that.
-    /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
     func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
@@ -72,11 +54,6 @@ protocol OfflineTestCallOfflineContentManagerAndExpectApi {
         eventHandlerBlock: ((T) -> Void)?
     )
 
-    /// Starts listening for the specified `MultipleEventsExpectation` before executing the passed
-    /// `offlineContentManagerBlock`.
-    /// When the expectation is fulfilled in the specified order, the `eventsHandlerBlock` is called.
-    /// This is the race-condition-safe version of calling `callOfflineContentManager` and `expectEvent` after that.
-    /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
     func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
@@ -88,9 +65,7 @@ protocol OfflineTestCallOfflineContentManagerAndExpectApi {
     )
 }
 
-protocol OfflineTestSingleEventExpectationApi {
-    /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
-    /// received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock` is called.
+internal protocol OfflineTestSingleEventExpectationApi {
     func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
@@ -100,9 +75,6 @@ protocol OfflineTestSingleEventExpectationApi {
         eventHandlerBlock: ((T) -> Void)?
     )
 
-    /// Listens for the specified `SingleEventExpectation` to be emitted and blocks the calling thread until the event
-    /// is received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock`
-    /// is called.
     func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -113,11 +85,7 @@ protocol OfflineTestSingleEventExpectationApi {
     )
 }
 
-protocol OfflineTestMultipleEventsExpectationApi {
-    /// Listens for the specified `MultipleEventsExpectation` to be fulfilled and blocks the calling thread until
-    /// the expectation is fulfilled in the specified order or the timeout is reached.
-    /// In the case where the expectation is fulfilled, the `eventsHandlerBlock` is called with an ordered list of the
-    /// Events
+internal protocol OfflineTestMultipleEventsExpectationApi {
     func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,
@@ -128,9 +96,7 @@ protocol OfflineTestMultipleEventsExpectationApi {
     )
 }
 
-protocol OfflineTestRejectEventApi {
-    /// Listens for the specified `OfflineEvent` while the test continues in the `testContinuationBlock`.
-    /// If the event is received during execution of the `testContinuationBlock`, the test fails.
+internal protocol OfflineTestRejectEventApi {
     func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString,
@@ -139,8 +105,6 @@ protocol OfflineTestRejectEventApi {
         _ testContinuationBlock: () -> Void
     )
 
-    /// Listens for the specified `SingleEventExpectation` while the test continues in the `testContinuationBlock`.
-    /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
     func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString,
@@ -150,9 +114,7 @@ protocol OfflineTestRejectEventApi {
     )
 }
 
-protocol OfflineTestRejectEventsApi {
-    /// Listens for the specified `MultipleEventsExpectation` while the test continues in the `testContinuationBlock`.
-    /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
+internal protocol OfflineTestRejectEventsApi {
     func rejectEvents(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString,
@@ -162,20 +124,13 @@ protocol OfflineTestRejectEventsApi {
     )
 }
 
-protocol OfflineTestConvenienceApi {
-    /// Get the `OfflineContentManager` for the provided `SourceConfig`
-    /// - Parameters:
-    ///   - sourceConfig: the source config to get the `OfflineContentManager`
-    ///   - id: unique identifier for the given `SourceConfig` which must not change once provided.
-    ///   - clean: reset the `OfflineContentManager` instance before returning it by
-    ///   canceling the download and delete the data.
+internal protocol OfflineTestConvenienceApi {
     func getOfflineContentManager(
         sourceConfig: SourceConfig,
         id: String?,
         clean: Bool
     ) throws -> OfflineContentManager
 
-    /// Download content until progress
     func downloadUntilProgress(
         _ offlineContentManager: OfflineContentManager,
         progress: Double,
@@ -184,7 +139,6 @@ protocol OfflineTestConvenienceApi {
         line: UInt
     )
 
-    /// Wait until the download of tracks has finished
     func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         tracks: OfflineTrackSelection,
@@ -194,7 +148,6 @@ protocol OfflineTestConvenienceApi {
         line: UInt
     )
 
-    /// Wait until the download has finished
     func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         config: DownloadConfig,
