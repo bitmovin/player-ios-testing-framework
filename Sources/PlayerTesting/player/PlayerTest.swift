@@ -54,7 +54,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
     ) {
         if setLicenseKeyForTesting, config.key == nil {
             // Override the LicenseKey for testing
-            config.key = playerLicenseKeyForTesting
+            config.key = PlayerTestingConfig.playerLicenseKeyForTesting
         }
 
         player = PlayerFactory.create(playerConfig: config)

@@ -7,9 +7,11 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import Foundation
 
 // swiftlint:disable type_name
 public typealias PO = PlainOfflineEventExpectation
 public typealias FO = FilteredOfflineEventExpectation
 // swiftlint:enable type_name
+#endif

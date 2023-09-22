@@ -8,4 +8,6 @@
 
 import Foundation
 
-public var playerLicenseKeyForTesting = ""
+public enum PlayerTestingConfig {
+    public static var playerLicenseKeyForTesting: String = ""
+}

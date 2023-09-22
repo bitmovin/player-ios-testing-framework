@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 
@@ -13,3 +14,4 @@ import Foundation
 public protocol SingleOfflineEventExpectation {
     var offlineContentManager: OfflineContentManager { get }
 }
+#endif

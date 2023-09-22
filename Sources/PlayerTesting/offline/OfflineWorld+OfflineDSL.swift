@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 
@@ -272,3 +273,4 @@ extension OfflineWorld {
         )
     }
 }
+#endif

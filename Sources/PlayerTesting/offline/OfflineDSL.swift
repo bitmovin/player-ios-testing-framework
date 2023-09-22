@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 
@@ -297,3 +298,4 @@ public func waitUntilDownloaded(
         line: line
     )
 }
+#endif

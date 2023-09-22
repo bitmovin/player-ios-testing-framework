@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 
@@ -31,3 +32,4 @@ public class PlainOfflineEventExpectation<T: OfflineEvent>: PlainEventExpectatio
         PlainOfflineEventExpectation(offlineContentManager, T.self)
     }
 }
+#endif

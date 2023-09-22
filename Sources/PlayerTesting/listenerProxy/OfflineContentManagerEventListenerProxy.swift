@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 import XCTest
@@ -53,3 +54,4 @@ extension OfflineContentManagerEventListenerProxy: OfflineContentManagerListener
         eventRecordings[eventName]?(event, offlineContentManager)
     }
 }
+#endif

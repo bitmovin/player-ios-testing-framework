@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 import XCTest
@@ -635,3 +636,4 @@ private typealias MultipleErrorMessageFactory = (
 private let defaultMultipleErrorMessageFactory: MultipleErrorMessageFactory = { _, expectations in
     "Received rejected offline event: '\(multipleExpectation: expectations)'"
 }
+#endif

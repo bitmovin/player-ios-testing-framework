@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 
 public extension DownloadConfig {
@@ -15,3 +16,4 @@ public extension DownloadConfig {
         return config
     }
 }
+#endif

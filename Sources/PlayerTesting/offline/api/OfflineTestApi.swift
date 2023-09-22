@@ -6,6 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
+#if os(iOS)
 import BitmovinPlayerCore
 import Foundation
 import XCTest
@@ -156,3 +157,4 @@ internal protocol OfflineTestConvenienceApi {
         line: UInt
     )
 }
+#endif
