@@ -1,0 +1,27 @@
+//
+// Bitmovin Player iOS SDK
+// Copyright (C) 2020, Bitmovin GmbH, All Rights Reserved
+//
+// This source code and its use and distribution, is subject to the terms
+// and conditions of the applicable license agreement.
+//
+
+import XCTest
+
+class PlayerTestExpectation {
+    /// The number of times reject() must be called before the test fails..
+    /// Default is 1.
+    var assertAtRejectCount = 1
+
+    private var rejectsCount = 0
+
+    /// Reject the expectation.
+    /// When the assertAtRejectCount value is reached it will fail the test.
+    func reject(_ reason: String, file: StaticString = #file, line: UInt = #line) {
+        rejectsCount += 1
+
+        if rejectsCount >= assertAtRejectCount {
+            XCTFail(reason, file: file, line: line)
+        }
+    }
+}
