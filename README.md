@@ -47,3 +47,9 @@ Your license key can be provided through the `PlayerTestingConfig`:
 ```swift
 PlayerTestingConfig.playerLicenseKeyForTesting = "YOUR_LICENSE_KEY"
 ```
+
+## Contribution
+Currently, this repo is a hard fork of the `PlayerTesting` framework from our [player-ios](https://github.com/bitmovin-engineering/player-ios) SDK repo. To extend the PlayerTesting framework with feature, please implement them in the SDK repo first.
+To sync the framework from the SDK repo to this repo, please copy over the whole `PlayerTesting` folder excluding the following files:
+- `*.plist` (`Info.plist`)
+- `*.h` (`PlayerTesting.h`)
