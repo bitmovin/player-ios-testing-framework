@@ -8,7 +8,7 @@
 
 import XCTest
 
-class PlayerTestExpectation {
+internal class PlayerTestExpectation {
     /// The number of times reject() must be called before the test fails..
     /// Default is 1.
     var assertAtRejectCount = 1

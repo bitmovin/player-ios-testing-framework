@@ -6,12 +6,12 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
-//import BitmovinPlayerTestsFramework
+#if os(iOS)
+import BitmovinPlayerCore
 import Foundation
 import XCTest
 
-class OfflineTest: NSObject {
+internal final class OfflineTest: NSObject {
     private var offlineManager: OfflineManager!
     private var activeConditions: [Condition] = []
     private var failOnErrorEnabled = false
@@ -37,8 +37,8 @@ class OfflineTest: NSObject {
 extension OfflineTest: OfflineContentManagerListener {
     func onOfflineError(_ event: OfflineErrorEvent, offlineContentManager: OfflineContentManager) {
         guard failOnErrorEnabled,
-              let failOnErrorFile = failOnErrorFile,
-              let failOnErrorLine = failOnErrorLine else { return }
+              let failOnErrorFile,
+              let failOnErrorLine else { return }
         XCTFail(
             "Error event was received: \(event.eventDescription)",
             file: failOnErrorFile,
@@ -90,7 +90,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
-    public func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventClass: T.Type,
@@ -116,7 +116,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
-    public func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -142,7 +142,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
     /// This is the race-condition-safe version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
-    public func callOfflineContentManagerAndExpectEvents(
+    internal func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -167,7 +167,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
 extension OfflineTest: OfflineTestSingleEventExpectationApi {
     /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
-    public func expectEvent<T: OfflineEvent>(
+    internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
         timeout: TimeInterval,
@@ -187,7 +187,7 @@ extension OfflineTest: OfflineTestSingleEventExpectationApi {
 
     /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
-    public func expectEvent<T: OfflineEvent>(
+    internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
@@ -260,7 +260,7 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
     /// the expectation is fulfilled in the specified order or the timeout is reached.
     /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
     /// Events
-    public func expectEvents(
+    internal func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
@@ -348,7 +348,7 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
 extension OfflineTest: OfflineTestRejectEventApi {
     /// Listens for the specified OfflineEvent while the test continues in the testContinuationBlock.
     /// If the event is received during execution of the testContinuationBlock, the test fails.
-    public func rejectEvent<T: OfflineEvent>(
+    internal func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -366,7 +366,7 @@ extension OfflineTest: OfflineTestRejectEventApi {
 
     /// Listens for the specified SingleEventExpectation while the test continues in the testContinuationBlock.
     /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
-    public func rejectEvent<T: OfflineEvent>(
+    internal func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -421,25 +421,7 @@ extension OfflineTest: OfflineTestRejectEventApi {
 extension OfflineTest: OfflineTestRejectEventsApi {
     /// Listens for the specified OfflineEvent while the test continues in the testContinuationBlock.
     /// If the events are received during execution of the testContinuationBlock, the test fails.
-    public func rejectEvents(
-        _ offlineContentManager: OfflineContentManager,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ eventClasses: OfflineEvent.Type...,
-        testContinuationBlock: () -> Void
-    ) {
-        rejectEvents(
-            offlineContentManager,
-            file: file,
-            line: line,
-            eventClasses,
-            testContinuationBlock
-        )
-    }
-
-    /// Listens for the specified OfflineEvent while the test continues in the testContinuationBlock.
-    /// If the events are received during execution of the testContinuationBlock, the test fails.
-    public func rejectEvents(
+    internal func rejectEvents(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -457,7 +439,7 @@ extension OfflineTest: OfflineTestRejectEventsApi {
 
     /// Listens for the specified MultipleEventsExpectation while the test continues in the testContinuationBlock.
     /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
-    public func rejectEvents(
+    internal func rejectEvents(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -516,13 +498,13 @@ extension OfflineTest: OfflineTestRejectEventsApi {
 }
 
 extension OfflineTest: OfflineTestConvenienceApi {
-    public func getOfflineContentManager(
+    internal func getOfflineContentManager(
         sourceConfig: SourceConfig,
         id: String? = nil,
         clean: Bool = true
     ) throws -> OfflineContentManager {
         let offlineContentManager: OfflineContentManager
-        if let id = id {
+        if let id {
             offlineContentManager = try offlineManager.offlineContentManager(
                 for: sourceConfig,
                 id: id
@@ -539,7 +521,7 @@ extension OfflineTest: OfflineTestConvenienceApi {
         return offlineContentManager
     }
 
-    public func downloadUntilProgress(
+    internal func downloadUntilProgress(
         _ offlineContentManager: OfflineContentManager,
         progress: Double,
         timeout: TimeInterval,
@@ -561,10 +543,10 @@ extension OfflineTest: OfflineTestConvenienceApi {
         )
     }
 
-    public func waitUntilDownloaded(
+    internal func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         tracks: OfflineTrackSelection,
-        config: DownloadConfig = DownloadConfig(),
+        config: DownloadConfig = DownloadConfig.lowestQuality,
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
@@ -587,9 +569,9 @@ extension OfflineTest: OfflineTestConvenienceApi {
         }
     }
 
-    public func waitUntilDownloaded(
+    internal func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
-        config: DownloadConfig = DownloadConfig(),
+        config: DownloadConfig = DownloadConfig.lowestQuality,
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
@@ -654,3 +636,4 @@ private typealias MultipleErrorMessageFactory = (
 private let defaultMultipleErrorMessageFactory: MultipleErrorMessageFactory = { _, expectations in
     "Received rejected offline event: '\(multipleExpectation: expectations)'"
 }
+#endif

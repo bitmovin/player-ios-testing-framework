@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 // This interface is a workaround for the issue that covariance generics do not exist in swift yet.

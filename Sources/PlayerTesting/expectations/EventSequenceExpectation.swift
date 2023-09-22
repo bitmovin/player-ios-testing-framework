@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect an given event sequence in a given order
@@ -39,6 +39,6 @@ extension EventSequenceExpectation: CustomStringConvertible {
                     return isFulfilled ? .fulfilled : .unfulfilled
                 }
             }
-            .joined(separator: "\n")
+            .joined(separator: " - ")
     }
 }

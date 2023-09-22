@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect multiple events in any order
@@ -27,6 +27,6 @@ extension EventBagExpectation: CustomStringConvertible {
     public var description: String {
         singleExpectations
             .map { $0.description }
-            .joined(separator: "\n")
+            .joined(separator: " - ")
     }
 }

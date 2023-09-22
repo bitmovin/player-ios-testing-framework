@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// 'Abstract' class for expecting multiple events
@@ -32,6 +32,7 @@ public class MultipleEventsExpectation {
         self.init(eventClasses.map(IsMemberExpectation.init))
     }
 
+    // swiftlint:disable:next unavailable_function
     public func isNextExpectationMet(receivedEvent: EventHolder<Event>) -> Bool {
         preconditionFailure("This method must be overridden")
     }
@@ -39,7 +40,7 @@ public class MultipleEventsExpectation {
 
 extension String.StringInterpolation {
     mutating func appendInterpolation(multipleExpectation: MultipleEventsExpectation) {
-        appendInterpolation("\n\(multipleExpectation)\n")
+        appendInterpolation("\(multipleExpectation)")
     }
 }
 

@@ -6,7 +6,8 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+#if os(iOS)
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect an event of a given type with a certain condition to occur for the specified source
@@ -40,3 +41,4 @@ public class FilteredOfflineEventExpectation<T: OfflineEvent>: FilteredEventExpe
         )
     }
 }
+#endif

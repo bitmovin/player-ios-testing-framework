@@ -6,7 +6,8 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+#if os(iOS)
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect an event of a given type to occur for the specified source
@@ -31,3 +32,4 @@ public class PlainOfflineEventExpectation<T: OfflineEvent>: PlainEventExpectatio
         PlainOfflineEventExpectation(offlineContentManager, T.self)
     }
 }
+#endif

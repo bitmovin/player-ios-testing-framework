@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 
 /// Class to expect at least one out of multiple events
@@ -26,6 +26,6 @@ extension AnyEventExpectation: CustomStringConvertible {
     public var description: String {
         singleExpectations
             .map { $0.description }
-            .joined(separator: "\n")
+            .joined(separator: " - ")
     }
 }

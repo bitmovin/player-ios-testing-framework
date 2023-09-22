@@ -6,52 +6,16 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+#if os(iOS)
+import BitmovinPlayerCore
 import Foundation
-import Nimble
-import Quick
 
-open class QuickOfflineTest: QuickSpec {
-    private var offlineTest: OfflineTest?
-
-    override open func setUp() {
-        super.setUp()
-        continueAfterFailure = false
-    }
-}
-
-extension QuickOfflineTest: OfflineTestLifecycleApi {
-    public func startOfflineTest(
-        offlineConfig: OfflineConfig = OfflineConfig(),
-        failOnError failOnErrorEnabled: Bool = true,
-        waitForSuspendedDownloadsRestoring: Bool = true,
-        file: StaticString = #file,
-        line: UInt = #line,
-        _ testBlock: OfflineTestBlock
-    ) {
-        offlineTest?.tearDown()
-        offlineTest = OfflineTest()
-
-        offlineTest?.startOfflineTest(
-            offlineConfig: offlineConfig,
-            failOnError: failOnErrorEnabled,
-            waitForSuspendedDownloadsRestoring: waitForSuspendedDownloadsRestoring,
-            file: file,
-            line: line,
-            testBlock
-        )
-
-        offlineTest?.tearDown()
-        offlineTest = nil
-    }
-}
-
-extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
+extension OfflineWorld {
     /// Starts listening for the specified Event before executing the passed `offlineContentManagerBlock`.
     /// When the event is received, the `eventHandlerBlock` is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
-    public func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventClass: T.Type,
@@ -60,7 +24,7 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         line: UInt = #line,
         eventHandlerBlock: ((T) -> Void)? = nil
     ) {
-        offlineTest?.callOfflineContentManagerAndExpectEvent(
+        currentOfflineTest?.callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             eventClass,
@@ -76,7 +40,7 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the event is received, the `eventHandlerBlock` is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
-    public func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -85,7 +49,7 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         line: UInt = #line,
         eventHandlerBlock: ((T) -> Void)? = nil
     ) {
-        offlineTest?.callOfflineContentManagerAndExpectEvent(
+        currentOfflineTest?.callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             eventExpectation,
@@ -101,7 +65,7 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the expectation is fulfilled in the specified order, the `eventsHandlerBlock` is called.
     /// This is the race-condition-safe version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
-    public func callOfflineContentManagerAndExpectEvents(
+    internal func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -110,7 +74,7 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         line: UInt = #line,
         eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
     ) {
-        offlineTest?.callOfflineContentManagerAndExpectEvents(
+        currentOfflineTest?.callOfflineContentManagerAndExpectEvents(
             offlineContentManager,
             offlineContentManagerBlock,
             multipleEventsExpectation,
@@ -120,12 +84,10 @@ extension QuickOfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
             eventHandlerBlock: eventHandlerBlock
         )
     }
-}
 
-extension QuickOfflineTest: OfflineTestSingleEventExpectationApi {
     /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock` is called.
-    public func expectEvent<T: OfflineEvent>(
+    internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
         timeout: TimeInterval,
@@ -133,7 +95,7 @@ extension QuickOfflineTest: OfflineTestSingleEventExpectationApi {
         line: UInt = #line,
         eventHandlerBlock: ((T) -> Void)? = nil
     ) {
-        offlineTest?.expectEvent(
+        currentOfflineTest?.expectEvent(
             offlineContentManager,
             eventClass,
             timeout: timeout,
@@ -146,7 +108,7 @@ extension QuickOfflineTest: OfflineTestSingleEventExpectationApi {
     /// Listens for the specified `SingleEventExpectation` to be emitted and blocks the calling thread until the event
     /// is received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock`
     /// is called.
-    public func expectEvent<T: OfflineEvent>(
+    internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
@@ -154,7 +116,7 @@ extension QuickOfflineTest: OfflineTestSingleEventExpectationApi {
         line: UInt = #line,
         eventHandlerBlock: ((T) -> Void)? = nil
     ) {
-        offlineTest?.expectEvent(
+        currentOfflineTest?.expectEvent(
             offlineContentManager,
             eventExpectation,
             timeout: timeout,
@@ -163,14 +125,12 @@ extension QuickOfflineTest: OfflineTestSingleEventExpectationApi {
             eventHandlerBlock: eventHandlerBlock
         )
     }
-}
 
-extension QuickOfflineTest: OfflineTestMultipleEventsExpectationApi {
     /// Listens for the specified `MultipleEventsExpectation` to be fulfilled and blocks the calling thread until
     /// the expectation is fulfilled in the specified order or the timeout is reached.
     /// In the case where the expectation is fulfilled, the `eventsHandlerBlock` is called with an ordered list of the
     /// Events
-    public func expectEvents(
+    internal func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
@@ -178,7 +138,7 @@ extension QuickOfflineTest: OfflineTestMultipleEventsExpectationApi {
         line: UInt = #line,
         eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
     ) {
-        offlineTest?.expectEvents(
+        currentOfflineTest?.expectEvents(
             offlineContentManager,
             multipleEventExpectation,
             timeout: timeout,
@@ -187,19 +147,17 @@ extension QuickOfflineTest: OfflineTestMultipleEventsExpectationApi {
             eventHandlerBlock: eventHandlerBlock
         )
     }
-}
 
-extension QuickOfflineTest: OfflineTestRejectEventApi {
     /// Listens for the specified `OfflineEvent` while the test continues in the `testContinuationBlock`.
     /// If the event is received during execution of the `testContinuationBlock`, the test fails.
-    public func rejectEvent<T: OfflineEvent>(
+    internal func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
         _ testContinuationBlock: () -> Void
     ) {
-        offlineTest?.rejectEvent(
+        currentOfflineTest?.rejectEvent(
             offlineContentManager,
             file: file,
             line: line,
@@ -210,14 +168,14 @@ extension QuickOfflineTest: OfflineTestRejectEventApi {
 
     /// Listens for the specified `SingleEventExpectation` while the test continues in the `testContinuationBlock`.
     /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
-    public func rejectEvent<T: OfflineEvent>(
+    internal func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
         _ testContinuationBlock: () -> Void
     ) {
-        offlineTest?.rejectEvent(
+        currentOfflineTest?.rejectEvent(
             offlineContentManager,
             file: file,
             line: line,
@@ -225,19 +183,17 @@ extension QuickOfflineTest: OfflineTestRejectEventApi {
             testContinuationBlock
         )
     }
-}
 
-extension QuickOfflineTest: OfflineTestRejectEventsApi {
     /// Listens for the specified `MultipleEventsExpectation` while the test continues in the `testContinuationBlock`.
     /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
-    public func rejectEvents(
+    internal func rejectEvents(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
         _ multipleEventExpectation: MultipleEventsExpectation,
         _ testContinuationBlock: () -> Void
     ) {
-        offlineTest?.rejectEvents(
+        currentOfflineTest?.rejectEvents(
             offlineContentManager,
             file: file,
             line: line,
@@ -245,24 +201,19 @@ extension QuickOfflineTest: OfflineTestRejectEventsApi {
             testContinuationBlock
         )
     }
-}
 
-extension QuickOfflineTest: OfflineTestConvenienceApi {
     /// Get the `OfflineContentManager` for the provided `SourceConfig`
     /// - Parameters:
     ///   - sourceConfig: the source config to get the `OfflineContentManager`
     ///   - id: unique identifier for the given `SourceConfig` which must not change once provided.
     ///   - clean: reset the `OfflineContentManager` instance before returning it by
     ///   canceling the download and delete the data.
-    public func getOfflineContentManager(
+    internal func getOfflineContentManager(
         sourceConfig: SourceConfig,
         id: String? = nil,
         clean: Bool = true
     ) throws -> OfflineContentManager {
-        guard let offlineTest = offlineTest else {
-            fatalError("Offline test cannot be nil")
-        }
-        return try offlineTest.getOfflineContentManager(
+        try currentOfflineTest.getOfflineContentManager(
             sourceConfig: sourceConfig,
             id: id,
             clean: clean
@@ -270,14 +221,14 @@ extension QuickOfflineTest: OfflineTestConvenienceApi {
     }
 
     /// Download content until progress
-    public func downloadUntilProgress(
+    internal func downloadUntilProgress(
         _ offlineContentManager: OfflineContentManager,
         progress: Double,
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        offlineTest?.downloadUntilProgress(
+        currentOfflineTest?.downloadUntilProgress(
             offlineContentManager,
             progress: progress,
             timeout: timeout,
@@ -287,15 +238,15 @@ extension QuickOfflineTest: OfflineTestConvenienceApi {
     }
 
     /// Wait until the download of tracks has finished
-    public func waitUntilDownloaded(
+    internal func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         tracks: OfflineTrackSelection,
-        config: DownloadConfig = DownloadConfig(),
+        config: DownloadConfig = DownloadConfig.lowestQuality,
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        offlineTest?.waitUntilDownloaded(
+        currentOfflineTest?.waitUntilDownloaded(
             offlineContentManager,
             tracks: tracks,
             config: config,
@@ -306,14 +257,14 @@ extension QuickOfflineTest: OfflineTestConvenienceApi {
     }
 
     /// Wait until the download finished
-    public func waitUntilDownloaded(
+    internal func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
-        config: DownloadConfig = DownloadConfig(),
+        config: DownloadConfig = DownloadConfig.lowestQuality,
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        offlineTest?.waitUntilDownloaded(
+        currentOfflineTest?.waitUntilDownloaded(
             offlineContentManager,
             config: config,
             timeout: timeout,
@@ -322,3 +273,4 @@ extension QuickOfflineTest: OfflineTestConvenienceApi {
         )
     }
 }
+#endif

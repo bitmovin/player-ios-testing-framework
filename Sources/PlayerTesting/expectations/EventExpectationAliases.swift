@@ -12,10 +12,8 @@ import Foundation
 // swiftlint:disable type_name
 public typealias P = PlainEventExpectation
 public typealias PS = PlainSourceEventExpectation
-public typealias PO = PlainOfflineEventExpectation
 public typealias F = FilteredEventExpectation
 public typealias FS = FilteredSourceEventExpectation
-public typealias FO = FilteredOfflineEventExpectation
 public typealias S = EventSequenceExpectation
 public typealias B = EventBagExpectation
 public typealias R = RepeatedEventExpectation

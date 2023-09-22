@@ -6,7 +6,7 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 import XCTest
 
@@ -14,7 +14,7 @@ import XCTest
 /// - Note: Since we have a delegate approach for adding and removing listeners we can't just pass
 ///         a block for a specific event like in Android or Web. This class simulates this behaviour by
 ///         storing the blocks and calling them when an event occurs.
-class EventListenerProxy: NSObject {
+internal class EventListenerProxy: NSObject {
     private var eventRecordings: [String: (Event) -> Void] = [:]
     private var onHeartbeatCallback: (() -> Void)?
 
@@ -56,6 +56,6 @@ extension EventListenerProxy: PlayerListener {
     }
 }
 
-enum EventRecorderError: Error {
+internal enum EventRecorderError: Error {
     case duplicateEventExpectation(eventName: String)
 }

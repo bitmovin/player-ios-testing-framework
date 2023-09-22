@@ -6,11 +6,12 @@
 // and conditions of the applicable license agreement.
 //
 
-import BitmovinPlayer
+#if os(iOS)
+import BitmovinPlayerCore
 import Foundation
 
 /// Class which handles `OfflineManagerDelegate` by calling passed callbacks
-class OfflineManagerDelegateProxy: NSObject {
+internal class OfflineManagerDelegateProxy: NSObject {
     private var onSuspendedDownloadsRestored: (() -> Void)?
 
     func setSuspendedDownloadsRestoredCallback(_ suspendedDownloadsRestoredCallback: (() -> Void)?) {
@@ -23,3 +24,4 @@ extension OfflineManagerDelegateProxy: OfflineManagerDelegate {
         onSuspendedDownloadsRestored?()
     }
 }
+#endif

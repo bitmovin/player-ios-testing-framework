@@ -5,7 +5,7 @@
 // This source code and its use and distribution, is subject to the terms
 // and conditions of the applicable license agreement.
 //
-import BitmovinPlayer
+import BitmovinPlayerCore
 import Foundation
 import XCTest
 
@@ -13,7 +13,7 @@ import XCTest
 /// - Note: Since we have a delegate approach for adding and removing listeners we can't just pass
 ///         a block for a specific event like in Android or Web. This class simulates this behaviour by
 ///         storing the blocks and calling them when an event occurs.
-class SourceEventListenerProxy: NSObject {
+internal class SourceEventListenerProxy: NSObject {
     private var eventRecordings: [String: (SourceEvent, Source) -> Void] = [:]
 
     func registerEvent<T: SourceEvent>(
