@@ -21,17 +21,15 @@ extension OfflineWorld {
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        currentOfflineTest?.callOfflineContentManagerAndExpectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await currentOfflineTest.callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             eventClass,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -46,17 +44,15 @@ extension OfflineWorld {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        currentOfflineTest?.callOfflineContentManagerAndExpectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await currentOfflineTest.callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             eventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -71,17 +67,15 @@ extension OfflineWorld {
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
-    ) {
-        currentOfflineTest?.callOfflineContentManagerAndExpectEvents(
+        line: UInt = #line
+    ) async throws -> [OfflineEvent] {
+        try await currentOfflineTest.callOfflineContentManagerAndExpectEvents(
             offlineContentManager,
             offlineContentManagerBlock,
             multipleEventsExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -92,16 +86,14 @@ extension OfflineWorld {
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        currentOfflineTest?.expectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await currentOfflineTest.expectEvent(
             offlineContentManager,
             eventClass,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -113,16 +105,14 @@ extension OfflineWorld {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        currentOfflineTest?.expectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await currentOfflineTest.expectEvent(
             offlineContentManager,
             eventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -135,16 +125,14 @@ extension OfflineWorld {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
-    ) {
-        currentOfflineTest?.expectEvents(
+        line: UInt = #line
+    ) async throws -> [OfflineEvent] {
+        try await currentOfflineTest.expectEvents(
             offlineContentManager,
             multipleEventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -155,9 +143,9 @@ extension OfflineWorld {
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    ) {
-        currentOfflineTest?.rejectEvent(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await currentOfflineTest.rejectEvent(
             offlineContentManager,
             file: file,
             line: line,
@@ -173,9 +161,9 @@ extension OfflineWorld {
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    ) {
-        currentOfflineTest?.rejectEvent(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await currentOfflineTest.rejectEvent(
             offlineContentManager,
             file: file,
             line: line,
@@ -191,9 +179,9 @@ extension OfflineWorld {
         file: StaticString = #file,
         line: UInt = #line,
         _ multipleEventExpectation: MultipleEventsExpectation,
-        _ testContinuationBlock: () -> Void
-    ) {
-        currentOfflineTest?.rejectEvents(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await currentOfflineTest.rejectEvents(
             offlineContentManager,
             file: file,
             line: line,
@@ -212,8 +200,8 @@ extension OfflineWorld {
         sourceConfig: SourceConfig,
         id: String? = nil,
         clean: Bool = true
-    ) throws -> OfflineContentManager {
-        try currentOfflineTest.getOfflineContentManager(
+    ) async throws -> OfflineContentManager {
+        try await currentOfflineTest.getOfflineContentManager(
             sourceConfig: sourceConfig,
             id: id,
             clean: clean
@@ -227,8 +215,8 @@ extension OfflineWorld {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
-        currentOfflineTest?.downloadUntilProgress(
+    ) async throws {
+        try await currentOfflineTest.downloadUntilProgress(
             offlineContentManager,
             progress: progress,
             timeout: timeout,
@@ -245,8 +233,8 @@ extension OfflineWorld {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
-        currentOfflineTest?.waitUntilDownloaded(
+    ) async throws {
+        try await currentOfflineTest.waitUntilDownloaded(
             offlineContentManager,
             tracks: tracks,
             config: config,
@@ -263,8 +251,8 @@ extension OfflineWorld {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
-        currentOfflineTest?.waitUntilDownloaded(
+    ) async throws {
+        try await currentOfflineTest.waitUntilDownloaded(
             offlineContentManager,
             config: config,
             timeout: timeout,

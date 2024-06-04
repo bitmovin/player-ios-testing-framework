@@ -38,62 +38,63 @@ internal protocol PlayerTestLifecycleApi {
         heartbeatWindow: TimeInterval?,
         failOnError failOnErrorEnabled: Bool,
         setLicenseKeyForTesting: Bool,
+        playerCreator: (_ config: PlayerConfig) -> Player,
         file: StaticString,
         line: UInt,
         _ testBlock: PlayerTestBlock
-    )
+    ) async throws
 }
 
 internal protocol PlayerTestSingleEventExpectationApi {
+    @discardableResult
     func expectEvent<T: PlayerEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func expectEvent<T: SourceEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func expectEvent<T: PlayerEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func expectEvent<T: SourceEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 }
 
 internal protocol PlayerTestMultipleEventsExpectationApi {
+    @discardableResult
     func expectEvents(
         _ eventClasses: [Event.Type],
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([Event]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [Event]
 
+    @discardableResult
     func expectEvents(
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([Event]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [Event]
 }
 
 internal protocol PlayerTestRejectEventApi {
@@ -101,29 +102,29 @@ internal protocol PlayerTestRejectEventApi {
         file: StaticString,
         line: UInt,
         _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 
     func rejectEvent<T: SourceEvent>(
         file: StaticString,
         line: UInt,
         _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 
     func rejectEvent<T: PlayerEvent>(
         file: StaticString,
         line: UInt,
         _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 
     func rejectEvent<T: SourceEvent>(
         file: StaticString,
         line: UInt,
         _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 }
 
 internal protocol PlayerTestRejectEventsApi {
@@ -131,59 +132,61 @@ internal protocol PlayerTestRejectEventsApi {
         file: StaticString,
         line: UInt,
         _ eventClasses: [Event.Type],
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 
     func rejectEvents(
         file: StaticString,
         line: UInt,
         _ multipleEventExpectation: MultipleEventsExpectation,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 }
 
 internal protocol PlayerTestCallPlayerAndExpectApi {
+    @discardableResult
     func callPlayerAndExpectEvent<T: Event>(
-        _ playerBlock: @escaping (Player) -> Void,
+        _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func callPlayerAndExpectEvent<T: Event>(
-        _ playerBlock: @escaping (Player) -> Void,
+        _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func callPlayerAndExpectEvents(
-        _ playerBlock: @escaping (Player) -> Void,
+        _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClasses: [Event.Type],
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([Event]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [Event]
 
+    @discardableResult
     func callPlayerAndExpectEvents(
-        _ playerBlock: @escaping (Player) -> Void,
+        _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([Event]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [Event]
 }
 
 internal protocol PlayerTestCallPlayerApi {
-    func callPlayer(_ playerBlock: @escaping (Player) -> Void)
+    func callPlayer(_ playerBlock: @escaping CallPlayerBlock)
 
-    func verifyPlayer(_ playerBlock: @escaping (Player) -> Void)
+    func callPlayer(_ playerBlock: @escaping AsyncCallPlayerBlock) async throws
+
+    func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock)
 
     func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void)
 }
@@ -198,7 +201,7 @@ internal protocol PlayerTestConvenienceApi {
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func load(
         _ sourceConfigs: [SourceConfig],
@@ -207,7 +210,7 @@ internal protocol PlayerTestConvenienceApi {
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func load(
         _ source: Source,
@@ -216,7 +219,7 @@ internal protocol PlayerTestConvenienceApi {
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func load(
         _ sources: [Source],
@@ -225,44 +228,60 @@ internal protocol PlayerTestConvenienceApi {
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func load(
         _ playlistConfig: PlaylistConfig,
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
-    func play(for time: TimeInterval, timeout: TimeInterval?, file: StaticString, line: UInt)
+    func play(
+        for time: TimeInterval,
+        timeout: TimeInterval?,
+        file: StaticString,
+        line: UInt
+    ) async throws
 
-    func play(until time: TimeInterval, timeout: TimeInterval?, file: StaticString, line: UInt)
+    func play(
+        until time: TimeInterval,
+        timeout: TimeInterval?,
+        file: StaticString,
+        line: UInt
+    ) async throws
 
-    func wait(for time: TimeInterval)
+    func wait(for time: TimeInterval) async throws
 
     func wait(
         timeout: TimeInterval?,
         file: StaticString,
         line: UInt,
         until playerBlock: @escaping (Player) -> Bool
-    )
+    ) async throws
 
     func deallocPlayer()
 }
 
 internal protocol PlayerViewTest {
+    @discardableResult
     func callPlayerViewAndExpectEvents(
-        _ playerViewBlock: @escaping (PlayerView) -> Void,
+        _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([Event]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [Event]
 
     func callPlayerView(
         _ playerViewBlock: @escaping (PlayerView) -> Void,
         file: StaticString,
         line: UInt
     )
+
+    func callPlayerView(
+        _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
+        file: StaticString,
+        line: UInt
+    ) async throws
 }

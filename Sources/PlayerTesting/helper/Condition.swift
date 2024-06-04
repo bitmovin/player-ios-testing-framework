@@ -54,7 +54,7 @@ public class Condition {
         expectation.fulfill()
     }
 
-    func wait(timeout: TimeInterval) {
-        _ = XCTWaiter.wait(for: [expectation], timeout: timeout)
+    func wait(timeout: TimeInterval) async {
+        _ = await XCTWaiter.fulfillment(of: [expectation], timeout: timeout)
     }
 }

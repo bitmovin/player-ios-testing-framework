@@ -15,6 +15,7 @@ import XCTest
 ///         storing the blocks and calling them when an event occurs.
 internal class SourceEventListenerProxy: NSObject {
     private var eventRecordings: [String: (SourceEvent, Source) -> Void] = [:]
+    var onEventCallback: ((_ event: Event) -> Void)?
 
     func registerEvent<T: SourceEvent>(
         _ eventClass: Event.Type,
@@ -42,7 +43,7 @@ internal class SourceEventListenerProxy: NSObject {
 
 extension SourceEventListenerProxy: SourceListener {
     func onEvent(_ event: SourceEvent, source: Source) {
-        print("[PlayerTesting] received source event: '\(event.name)'")
+        onEventCallback?(event)
 
         let className = String(describing: type(of: event))
         eventRecordings[className]?(event, source)

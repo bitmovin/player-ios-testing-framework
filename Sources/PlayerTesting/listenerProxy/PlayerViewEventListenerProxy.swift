@@ -13,6 +13,7 @@ import XCTest
 internal class PlayerViewEventListenerProxy: NSObject {
     private var eventRecordings: [String: (Event) -> Void] = [:]
     private var onHeartbeatCallback: (() -> Void)?
+    var onEventCallback: ((_ event: Event) -> Void)?
 
     func registerEvent<T: Event>(
         _ eventClass: Event.Type,
@@ -38,7 +39,7 @@ internal class PlayerViewEventListenerProxy: NSObject {
     }
 
     private func onEvent(_ event: Event, view: PlayerView) {
-        print("[PlayerTesting] received PlayerView event: '\(event.name)'")
+        onEventCallback?(event)
 
         let className = String(describing: type(of: event))
         eventRecordings[className]?(event)

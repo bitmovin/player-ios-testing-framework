@@ -11,6 +11,7 @@ import BitmovinPlayerCore
 import Foundation
 import XCTest
 
+@MainActor
 internal final class OfflineTest: NSObject {
     private var offlineManager: OfflineManager!
     private var activeConditions: [Condition] = []
@@ -19,8 +20,8 @@ internal final class OfflineTest: NSObject {
     private var failOnErrorLine: UInt?
     private var offlineContentManagers: [OfflineContentManager] = []
 
-    func tearDown() {
-        cleanupTestData()
+    func tearDown() async throws {
+        try await cleanupTestData()
     }
 
     func fail(
@@ -55,7 +56,7 @@ extension OfflineTest: OfflineTestLifecycleApi {
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: OfflineTestBlock
-    ) {
+    ) async throws {
         self.failOnErrorEnabled = failOnErrorEnabled
         self.failOnErrorFile = file
         self.failOnErrorLine = line
@@ -71,17 +72,10 @@ extension OfflineTest: OfflineTestLifecycleApi {
             offlineDelegate.setSuspendedDownloadsRestoredCallback {
                 condition.fulfill()
             }
-            condition.wait(timeout: 100)
+            await condition.wait(timeout: 100)
         }
-        do {
-            try testBlock()
-        } catch {
-            fail(
-                with: "Test failed with error: \(error.localizedDescription)",
-                file: file,
-                line: line
-            )
-        }
+
+        try await testBlock()
     }
 }
 
@@ -90,25 +84,23 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
+    @discardableResult
     internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        callOfflineContentManagerAndExpectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             PlainEventExpectation(eventClass),
             timeout: timeout,
             file: file,
             line: line
-        ) { event in
-            eventHandlerBlock?(event)
-        }
+        )
     }
 
     /// Starts listening for the specified SingleEventExpectation before executing the passed
@@ -122,16 +114,14 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectEventBlocking(
+        line: UInt = #line
+    ) async throws -> T {
+        try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: eventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         ) {
             offlineContentManagerBlock(offlineContentManager)
         }
@@ -148,16 +138,14 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
-    ) {
-        expectEventsBlocking(
+        line: UInt = #line
+    ) async throws -> [OfflineEvent] {
+        try await expectEventsBlocking(
             offlineContentManager,
             multipleEventsExpectation: multipleEventsExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         ) {
             offlineContentManagerBlock(offlineContentManager)
         }
@@ -172,86 +160,59 @@ extension OfflineTest: OfflineTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectEvent(
+        line: UInt = #line
+    ) async throws -> T {
+        try await expectEvent(
             offlineContentManager,
             PlainEventExpectation(eventClass),
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
     /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+    @discardableResult
     internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: ((T) -> Void)? = nil
-    ) {
-        expectEventBlocking(
+        line: UInt = #line
+    ) async throws -> T {
+        try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: eventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
+    @discardableResult
     private func expectEventBlocking<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         singleEventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString,
         line: UInt,
-        eventHandlerBlock: ((T) -> Void)? = nil,
-        onListenerAttachedBlock: (() -> Void)? = nil
-    ) {
-        let eventListenerProxy = OfflineContentManagerEventListenerProxy()
-        offlineContentManager.add(listener: eventListenerProxy)
+        onListenerAttachedBlock: OnListenerAttachedBlock? = nil
+    ) async throws -> T {
+        let events = try await expectEventsBlocking(
+            offlineContentManager,
+            multipleEventsExpectation: EventSequenceExpectation([singleEventExpectation]),
+            timeout: timeout,
+            file: file,
+            line: line,
+            onListenerAttachedBlock: onListenerAttachedBlock
+        )
 
-        let condition = Condition(description: "\(singleExpectation: singleEventExpectation)")
-
-        let eventExpectationBlock: (EventHolder<Event>) -> Void = { eventHolder in
-            if singleEventExpectation.maybeFulfillExpectation(
-                receivedEvent: eventHolder
-            ) {
-                eventHandlerBlock?(eventHolder.event as! T)
-                condition.fulfill()
-            }
-            condition.description = eventHolder.event.eventDescription
+        guard let event = events.first as? T else {
+            throw PlayerTestingError.expectationNotMet
         }
 
-        try? eventListenerProxy.registerEvent(
-            singleEventExpectation.eventClass
-        ) { event, offlineContentManager in
-            eventExpectationBlock(
-                EventHolder(
-                    offlineContentManager: offlineContentManager,
-                    event: event
-                )
-            )
-        }
-
-        onListenerAttachedBlock?()
-
-        activeConditions.append(condition)
-        condition.wait(timeout: timeout)
-        activeConditions.removeAll { $0 === condition }
-
-        eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
-        offlineContentManager.remove(listener: eventListenerProxy)
-
-        if !condition.isFulfilled {
-            XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
-        }
+        return event
     }
 }
 
@@ -265,16 +226,14 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString = #file,
-        line: UInt = #line,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil
-    ) {
-        expectEventsBlocking(
+        line: UInt = #line
+    ) async throws -> [OfflineEvent] {
+        try await expectEventsBlocking(
             offlineContentManager,
             multipleEventsExpectation: multipleEventExpectation,
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: eventHandlerBlock
+            line: line
         )
     }
 
@@ -284,10 +243,12 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)? = nil,
-        onListenerAttachedBlock: (() -> Void)? = nil
-    ) {
+        onListenerAttachedBlock: OnListenerAttachedBlock? = nil
+    ) async throws -> [OfflineEvent] {
         let eventListenerProxy = OfflineContentManagerEventListenerProxy()
+        eventListenerProxy.onEventCallback = { event in
+            log(.info("Received `OfflineEvent` inside `expectEvents`: '\(event.name)'"))
+        }
         offlineContentManager.add(listener: eventListenerProxy)
 
         var recordedEvents: [OfflineEvent] = []
@@ -321,10 +282,10 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
             }
         }
 
-        onListenerAttachedBlock?()
+        try await onListenerAttachedBlock?()
 
         activeConditions.append(condition)
-        condition.wait(timeout: timeout)
+        await condition.wait(timeout: timeout)
         activeConditions.removeAll { $0 === condition }
 
         multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
@@ -337,11 +298,12 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
 
         offlineContentManager.remove(listener: eventListenerProxy)
 
-        if condition.isFulfilled {
-            eventHandlerBlock?(recordedEvents)
-        } else {
+        if !condition.isFulfilled {
             XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
+            throw PlayerTestingError.expectationNotMet
         }
+
+        return recordedEvents
     }
 }
 
@@ -353,9 +315,9 @@ extension OfflineTest: OfflineTestRejectEventApi {
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEvent(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await rejectEvent(
             offlineContentManager,
             file: file,
             line: line,
@@ -371,9 +333,9 @@ extension OfflineTest: OfflineTestRejectEventApi {
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEventBlocking(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await rejectEventBlocking(
             offlineContentManager,
             file: file,
             line: line,
@@ -388,33 +350,18 @@ extension OfflineTest: OfflineTestRejectEventApi {
         line: UInt,
         errorMessageFactory: @escaping SingleErrorMessageFactory = defaultSingleErrorMessageFactory,
         singleEventExpectation: SingleEventExpectation<T>,
-        testContinuationBlock: () -> Void
-    ) {
-        let eventListenerProxy = OfflineContentManagerEventListenerProxy()
-        offlineContentManager.add(listener: eventListenerProxy)
-
-        let eventClass = singleEventExpectation.eventClass
-        let expectation = PlayerTestExpectation()
-
-        try? eventListenerProxy.registerEvent(eventClass) { (event: OfflineEvent, offlineContentManager) in
-            if singleEventExpectation.maybeFulfillExpectation(
-                receivedEvent: EventHolder(
-                    offlineContentManager: offlineContentManager,
-                    event: event
-                )
-            ) {
-                expectation.reject(
-                    errorMessageFactory(event),
-                    file: file,
-                    line: line
-                )
-            }
-        }
-
-        testContinuationBlock()
-
-        eventListenerProxy.unregisterEvent(eventClass)
-        offlineContentManager.remove(listener: eventListenerProxy)
+        testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await rejectEventsBlocking(
+            offlineContentManager,
+            file: file,
+            line: line,
+            errorMessageFactory: { event, _ in
+                errorMessageFactory(event)
+            },
+            multipleEventsExpectation: EventSequenceExpectation([singleEventExpectation]),
+            testContinuationBlock: testContinuationBlock
+        )
     }
 }
 
@@ -426,9 +373,9 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClasses: [OfflineEvent.Type],
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEvents(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await rejectEvents(
             offlineContentManager,
             file: file,
             line: line,
@@ -444,9 +391,9 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         file: StaticString = #file,
         line: UInt = #line,
         _ multipleEventExpectation: MultipleEventsExpectation,
-        _ testContinuationBlock: () -> Void
-    ) {
-        rejectEventsBlocking(
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws {
+        try await rejectEventsBlocking(
             offlineContentManager,
             file: file,
             line: line,
@@ -461,9 +408,12 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         line: UInt,
         errorMessageFactory: @escaping MultipleErrorMessageFactory = defaultMultipleErrorMessageFactory,
         multipleEventsExpectation: MultipleEventsExpectation,
-        testContinuationBlock: () -> Void
-    ) {
+        testContinuationBlock: TestContinuationBlock
+    ) async throws {
         let eventListenerProxy = OfflineContentManagerEventListenerProxy()
+        eventListenerProxy.onEventCallback = { event in
+            log(.info("Received `OfflineEvent` inside `rejectEvents`: '\(event.name)'"))
+        }
         offlineContentManager.add(listener: eventListenerProxy)
 
         let expectation = PlayerTestExpectation()
@@ -488,7 +438,7 @@ extension OfflineTest: OfflineTestRejectEventsApi {
             }
         }
 
-        testContinuationBlock()
+        try await testContinuationBlock()
 
         multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
             eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
@@ -502,7 +452,7 @@ extension OfflineTest: OfflineTestConvenienceApi {
         sourceConfig: SourceConfig,
         id: String? = nil,
         clean: Bool = true
-    ) throws -> OfflineContentManager {
+    ) async throws -> OfflineContentManager {
         let offlineContentManager: OfflineContentManager
         if let id {
             offlineContentManager = try offlineManager.offlineContentManager(
@@ -513,7 +463,7 @@ extension OfflineTest: OfflineTestConvenienceApi {
             offlineContentManager = try offlineManager.offlineContentManager(for: sourceConfig)
         }
         if clean {
-            resetOfflineContentManager(offlineContentManager)
+            try await resetOfflineContentManager(offlineContentManager)
         }
         // This listener is used for the fail on error
         offlineContentManager.add(listener: self)
@@ -527,9 +477,9 @@ extension OfflineTest: OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async throws {
         offlineContentManager.download()
-        self.expectEvent(
+        try await self.expectEvent(
             offlineContentManager,
             FilteredOfflineEventExpectation(
                 offlineContentManager,
@@ -550,8 +500,8 @@ extension OfflineTest: OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
-        expectEventBlocking(
+    ) async throws {
+        try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: PlainOfflineEventExpectation(
                 offlineContentManager,
@@ -559,8 +509,7 @@ extension OfflineTest: OfflineTestConvenienceApi {
             ),
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: nil
+            line: line
         ) {
             offlineContentManager.download(
                 tracks: tracks,
@@ -575,8 +524,8 @@ extension OfflineTest: OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
-        expectEventBlocking(
+    ) async throws {
+        try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: PlainOfflineEventExpectation(
                 offlineContentManager,
@@ -584,8 +533,7 @@ extension OfflineTest: OfflineTestConvenienceApi {
             ),
             timeout: timeout,
             file: file,
-            line: line,
-            eventHandlerBlock: nil
+            line: line
         ) {
             offlineContentManager.download(
                 downloadConfig: config
@@ -595,17 +543,17 @@ extension OfflineTest: OfflineTestConvenienceApi {
 }
 
 private extension OfflineTest {
-    private func cleanupTestData() {
-        offlineContentManagers.forEach(resetOfflineContentManager)
+    private func cleanupTestData() async throws {
+        try await offlineContentManagers.forEach(resetOfflineContentManager)
         offlineContentManagers = []
         offlineManager = nil
     }
 
-    private func resetOfflineContentManager(_ offlineContentManager: OfflineContentManager) {
+    private func resetOfflineContentManager(_ offlineContentManager: OfflineContentManager) async throws {
         switch offlineContentManager.offlineState {
         case .downloading, .suspended:
             // swiftlint:disable opening_brace
-            callOfflineContentManagerAndExpectEvent(
+            try await callOfflineContentManagerAndExpectEvent(
                 offlineContentManager,
                 { offlineContentManager in
                     offlineContentManager.cancelDownload()
