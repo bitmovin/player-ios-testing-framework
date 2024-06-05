@@ -28,10 +28,10 @@ let sourceConfig = SourceConfig(
     type: .hls
 )
 
-startPlayerTest {
-    loadSourceConfig(sourceConfig)
+try await startPlayerTest {
+    try await loadSourceConfig(sourceConfig)
 
-    callPlayerAndExpectEvent({ player in
+    try await callPlayerAndExpectEvent({ player in
             player.play()
         },
         PlayingEvent.self
