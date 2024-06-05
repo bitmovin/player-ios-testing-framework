@@ -207,6 +207,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
 // MARK: - Single event handling
 extension PlayerTest: PlayerTestSingleEventExpectationApi {
+    @discardableResult
     internal func expectEvent<T: Event>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
@@ -221,6 +222,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         )
     }
 
+    @discardableResult
     internal func expectEvent<T: Event>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
@@ -261,6 +263,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
 
 // MARK: - Multiple events handling
 extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
+    @discardableResult
     internal func expectEvents(
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
@@ -275,6 +278,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         )
     }
 
+    @discardableResult
     internal func expectEvents(
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
@@ -483,6 +487,7 @@ extension PlayerTest: PlayerTestRejectEventsApi {
 
 // MARK: - Call player handling
 extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
+    @discardableResult
     internal func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -517,6 +522,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClasses: [Event.Type],
@@ -533,6 +539,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -746,6 +753,7 @@ extension PlayerTest: PlayerTestConvenienceApi {
 
 // MARK: - PlayerView Testing
 extension PlayerTest: PlayerViewTest {
+    @discardableResult
     func callPlayerViewAndExpectEvents(
         _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
         _ multipleEventsExpectation: MultipleEventsExpectation,

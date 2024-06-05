@@ -108,6 +108,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
+    @discardableResult
     internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
@@ -132,6 +133,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
     /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
     /// This is the race-condition-safe version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the offlineContentManagerBlock.
+    @discardableResult
     internal func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
@@ -155,6 +157,7 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
 extension OfflineTest: OfflineTestSingleEventExpectationApi {
     /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+    @discardableResult
     internal func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
@@ -221,6 +224,7 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
     /// the expectation is fulfilled in the specified order or the timeout is reached.
     /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
     /// Events
+    @discardableResult
     internal func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,

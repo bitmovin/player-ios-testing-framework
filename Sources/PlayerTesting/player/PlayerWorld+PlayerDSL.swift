@@ -11,6 +11,7 @@ import Foundation
 
 // swiftlint:disable:this function_default_parameter_at_end
 extension PlayerWorld {
+    @discardableResult
     internal func expectEvent<T: PlayerEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
@@ -25,6 +26,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func expectEvent<T: SourceEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
@@ -39,6 +41,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func expectEvent<T: PlayerEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
@@ -53,6 +56,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func expectEvent<T: SourceEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
@@ -67,6 +71,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func expectEvents(
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
@@ -81,6 +86,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func expectEvents(
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
@@ -154,6 +160,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClass: T.Type,
@@ -170,6 +177,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -186,6 +194,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClasses: [Event.Type],
@@ -202,6 +211,7 @@ extension PlayerWorld {
         )
     }
 
+    @discardableResult
     internal func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
