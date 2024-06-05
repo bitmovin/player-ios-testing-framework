@@ -12,7 +12,7 @@ import Foundation
 import XCTest
 
 public typealias OfflineContentManagerTestBlock = (OfflineContentManager) -> Void
-public typealias OfflineTestBlock = () throws -> Void
+public typealias OfflineTestBlock = () async throws -> Void
 
 internal typealias OfflineTestApi =
     OfflineTestLifecycleApi &
@@ -31,70 +31,70 @@ internal protocol OfflineTestLifecycleApi {
         file: StaticString,
         line: UInt,
         _ testBlock: OfflineTestBlock
-    )
+    ) async throws
 }
 
 internal protocol OfflineTestCallOfflineContentManagerAndExpectApi {
+    @discardableResult
     func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [OfflineEvent]
 }
 
 internal protocol OfflineTestSingleEventExpectationApi {
+    @discardableResult
     func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 
+    @discardableResult
     func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: ((T) -> Void)?
-    )
+        line: UInt
+    ) async throws -> T
 }
 
 internal protocol OfflineTestMultipleEventsExpectationApi {
+    @discardableResult
     func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
         file: StaticString,
-        line: UInt,
-        eventHandlerBlock: (([OfflineEvent]) -> Void)?
-    )
+        line: UInt
+    ) async throws -> [OfflineEvent]
 }
 
 internal protocol OfflineTestRejectEventApi {
@@ -103,16 +103,16 @@ internal protocol OfflineTestRejectEventApi {
         file: StaticString,
         line: UInt,
         _ eventClass: T.Type,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 
     func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString,
         line: UInt,
         _ eventExpectation: SingleEventExpectation<T>,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 }
 
 internal protocol OfflineTestRejectEventsApi {
@@ -121,8 +121,8 @@ internal protocol OfflineTestRejectEventsApi {
         file: StaticString,
         line: UInt,
         _ multipleEventExpectation: MultipleEventsExpectation,
-        _ testContinuationBlock: () -> Void
-    )
+        _ testContinuationBlock: TestContinuationBlock
+    ) async throws
 }
 
 internal protocol OfflineTestConvenienceApi {
@@ -130,7 +130,7 @@ internal protocol OfflineTestConvenienceApi {
         sourceConfig: SourceConfig,
         id: String?,
         clean: Bool
-    ) throws -> OfflineContentManager
+    ) async throws -> OfflineContentManager
 
     func downloadUntilProgress(
         _ offlineContentManager: OfflineContentManager,
@@ -138,7 +138,7 @@ internal protocol OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
@@ -147,7 +147,7 @@ internal protocol OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 
     func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
@@ -155,6 +155,6 @@ internal protocol OfflineTestConvenienceApi {
         timeout: TimeInterval,
         file: StaticString,
         line: UInt
-    )
+    ) async throws
 }
 #endif

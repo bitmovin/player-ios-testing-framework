@@ -10,7 +10,7 @@ import OHHTTPStubs
 import OHHTTPStubsSwift
 
 extension PlayerTestCallPlayerApi {
-    func stubNoInternet(_ testBlock: () -> Void) {
+    func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
         verifyPlayer { player in
             assert(
                 player.config.tweaksConfig.isCustomHlsLoadingEnabled,
@@ -36,6 +36,6 @@ extension PlayerTestCallPlayerApi {
                 HTTPStubs.removeStub(stubDescriptor)
             }
         }
-        testBlock()
+        try await testBlock()
     }
 }

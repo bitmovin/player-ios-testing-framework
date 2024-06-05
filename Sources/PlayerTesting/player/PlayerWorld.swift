@@ -10,6 +10,7 @@ import BitmovinPlayerCore
 import Foundation
 import XCTest
 
+@MainActor
 internal class PlayerWorld {
     private(set) static var sharedWorld = PlayerWorld()
 
@@ -29,22 +30,24 @@ internal class PlayerWorld {
         heartbeatWindow: TimeInterval? = nil,
         failOnError failOnErrorEnabled: Bool = true,
         setLicenseKeyForTesting: Bool = true,
+        playerCreator: (_ config: PlayerConfig) -> Player = PlayerCoreFactory.createPlayer(playerConfig:),
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
-    ) {
+    ) async throws {
         // In case the previous test failed, we need to do the tear down here
         _currentPlayerTest?.tearDown()
 
         _currentPlayerTest = PlayerTest()
 
-        currentPlayerTest?.startPlayerTest(
+        try await currentPlayerTest?.startPlayerTest(
             config: config,
             buildViewHierarchyMode: buildViewHierarchyMode,
             globalTimeout: globalTimeout,
             heartbeatWindow: heartbeatWindow,
             failOnError: failOnErrorEnabled,
             setLicenseKeyForTesting: setLicenseKeyForTesting,
+            playerCreator: playerCreator,
             file: file,
             line: line,
             testBlock

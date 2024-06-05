@@ -17,7 +17,7 @@ public class EventSequenceExpectation: MultipleEventsExpectation {
 
     override public func isNextExpectationMet(receivedEvent: EventHolder<Event>) -> Bool {
         guard let nextSingleEventExpectation = singleExpectations.first(where: { !$0.isFulfilled }) else {
-            print("[EventSequenceExpectation] no unfulfilled expectation left")
+            log(.warning("[EventSequenceExpectation] no unfulfilled expectation left"))
             return true
         }
 

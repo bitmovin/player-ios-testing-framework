@@ -19,6 +19,7 @@ import Foundation
 ///   - failOnError: defines if tests should fail when receiving an error event
 ///   - setLicenseKeyForTesting: defines if a license key will be ensured if non is set in player config
 ///   - testBlock: test block to be executed
+@MainActor
 public func startPlayerTest(
     config: PlayerConfig = PlayerConfig(),
     buildViewHierarchyMode: ViewHierarchyBuildMode = .full,
@@ -26,17 +27,19 @@ public func startPlayerTest(
     heartbeatWindow: TimeInterval? = nil,
     failOnError failOnErrorEnabled: Bool = true,
     setLicenseKeyForTesting: Bool = true,
+    playerCreator: (_ config: PlayerConfig) -> Player = PlayerCoreFactory.createPlayer(playerConfig:),
     file: StaticString = #file,
     line: UInt = #line,
     _ testBlock: PlayerTestBlock
-) {
-    PlayerWorld.sharedWorld.startPlayerTest(
+) async throws {
+    try await PlayerWorld.sharedWorld.startPlayerTest(
         config: config,
         buildViewHierarchyMode: buildViewHierarchyMode,
         globalTimeout: globalTimeout,
         heartbeatWindow: heartbeatWindow,
         failOnError: failOnErrorEnabled,
         setLicenseKeyForTesting: setLicenseKeyForTesting,
+        playerCreator: playerCreator,
         file: file,
         line: line,
         testBlock
@@ -45,73 +48,73 @@ public func startPlayerTest(
 
 /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
+@discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.expectEvent(
         eventClass,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
+@discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.expectEvent(
         eventClass,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
+@discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.expectEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
+@discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.expectEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -119,19 +122,19 @@ public func expectEvent<T: SourceEvent>(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
+@discardableResult
 public func expectEvents(
     _ eventClasses: Event.Type...,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.expectEvents(
         eventClasses,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -139,19 +142,19 @@ public func expectEvents(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
+@discardableResult
 public func expectEvents(
     _ eventClasses: [Event.Type],
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.expectEvents(
         eventClasses,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -159,118 +162,130 @@ public func expectEvents(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
+@discardableResult
 public func expectEvents(
     _ multipleEventExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.expectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.expectEvents(
         multipleEventExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Listens for the specified BitmovinEvent while the test continues in the testContinuationBlock.
 /// If the event is received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: PlayerEvent>(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventClass: T.Type,
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
 }
 
 /// Listens for the specified BitmovinEvent while the test continues in the testContinuationBlock.
 /// If the event is received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: SourceEvent>(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventClass: T.Type,
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
 }
 
 /// Listens for the specified SingleEventExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: PlayerEvent>(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventExpectation: SingleEventExpectation<T>,
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
 }
 
 /// Listens for the specified SingleEventExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: SourceEvent>(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventExpectation: SingleEventExpectation<T>,
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
 }
 
 /// Listens for the specified BitmovinEvents while the test continues in the testContinuationBlock.
 /// If the events are received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventClasses: Event.Type...,
-    testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvents(file: file, line: line, eventClasses, testContinuationBlock)
+    testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvents(file: file, line: line, eventClasses, testContinuationBlock)
 }
 
 /// Listens for the specified BitmovinEvents while the test continues in the testContinuationBlock.
 /// If the events are received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
     _ eventClasses: [Event.Type],
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvents(file: file, line: line, eventClasses, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvents(file: file, line: line, eventClasses, testContinuationBlock)
 }
 
 /// Listens for the specified MultipleEventsExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
     _ multipleEventExpectation: MultipleEventsExpectation,
-    _ testContinuationBlock: () -> Void
-) {
-    PlayerWorld.sharedWorld.rejectEvents(file: file, line: line, multipleEventExpectation, testContinuationBlock)
+    _ testContinuationBlock: TestContinuationBlock
+) async throws {
+    try await PlayerWorld.sharedWorld.rejectEvents(
+        file: file,
+        line: line,
+        multipleEventExpectation,
+        testContinuationBlock
+    )
 }
 
 /// Starts listening for the specified Event before executing the passed playerBlock.
 /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
 /// version of calling callPlayer and expectEvent after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
+@discardableResult
 public func callPlayerAndExpectEvent<T: Event>(
-    _ playerBlock: @escaping (Player) -> Void,
+    _ playerBlock: @escaping AsyncCallPlayerBlock,
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerAndExpectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.callPlayerAndExpectEvent(
         playerBlock,
         eventClass,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -278,21 +293,21 @@ public func callPlayerAndExpectEvent<T: Event>(
 /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
 /// version of calling callPlayer and expectEvent after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
+@discardableResult
 public func callPlayerAndExpectEvent<T: Event>(
-    _ playerBlock: @escaping (Player) -> Void,
+    _ playerBlock: @escaping AsyncCallPlayerBlock,
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: ((T) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerAndExpectEvent(
+    line: UInt = #line
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.callPlayerAndExpectEvent(
         playerBlock,
         eventExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -300,21 +315,21 @@ public func callPlayerAndExpectEvent<T: Event>(
 /// When the events are received in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
+@discardableResult
 public func callPlayerAndExpectEvents(
-    _ playerBlock: @escaping (Player) -> Void,
+    _ playerBlock: @escaping AsyncCallPlayerBlock,
     _ eventClasses: [Event.Type],
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
         playerBlock,
         eventClasses,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -322,21 +337,21 @@ public func callPlayerAndExpectEvents(
 /// When the events are received in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
+@discardableResult
 public func callPlayerAndExpectEvents(
-    _ playerBlock: @escaping (Player) -> Void,
+    _ playerBlock: @escaping AsyncCallPlayerBlock,
     _ eventClasses: Event.Type...,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
         playerBlock,
         eventClasses,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
@@ -344,43 +359,53 @@ public func callPlayerAndExpectEvents(
 /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerApiBlock.
+@MainActor
+@discardableResult
 public func callPlayerAndExpectEvents(
-    _ playerBlock: @escaping (Player) -> Void,
+    _ playerBlock: @escaping AsyncCallPlayerBlock,
     _ multipleEventsExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.callPlayerAndExpectEvents(
         playerBlock,
         multipleEventsExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Executes the passed block with the BitmovinPlayer as argument.
 /// Use this function to call Player API as part of the test.
-public func callPlayer(_ playerBlock: @escaping (Player) -> Void) {
+@MainActor
+public func callPlayer(_ playerBlock: @escaping CallPlayerBlock) {
     PlayerWorld.sharedWorld.callPlayer(playerBlock)
+}
+
+@MainActor
+public func callPlayer(_ playerBlock: @escaping AsyncCallPlayerBlock) async throws {
+    try await PlayerWorld.sharedWorld.callPlayer(playerBlock)
 }
 
 /// Executes the passed block with the BitmovinPlayer as argument.
 /// Use this function to perform assertions in the scope of the Player.
-public func verifyPlayer(_ playerBlock: @escaping (Player) -> Void) {
+@MainActor
+public func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock) {
     PlayerWorld.sharedWorld.verifyPlayer(playerBlock)
 }
 
 /// Executes the passed block with the optional BitmovinPlayer as argument.
 /// Use this function to perform assertions in the scope of the Player.
+
+@MainActor
 public func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
     PlayerWorld.sharedWorld.safeVerifyPlayer(playerBlock)
 }
 
 /// Creates a `Source` from the given `SourceConfig`.
+@MainActor
 public func createSource(sourceConfig: SourceConfig) -> Source {
     PlayerWorld.sharedWorld.createSource(sourceConfig: sourceConfig)
 }
@@ -393,6 +418,7 @@ public func createSource(sourceConfig: SourceConfig) -> Source {
 
 /// Loads a `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSource(
     _ source: Source,
     preloadAllSources: Bool = false,
@@ -400,8 +426,8 @@ public func loadSource(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         source,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -413,6 +439,7 @@ public func loadSource(
 
 /// Loads array of `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSources(
     _ sources: [Source],
     preloadAllSources: Bool = false,
@@ -420,8 +447,8 @@ public func loadSources(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         sources,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -433,6 +460,7 @@ public func loadSources(
 
 /// Loads array of `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSources(
     _ sources: Source...,
     preloadAllSources: Bool = false,
@@ -440,8 +468,8 @@ public func loadSources(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         sources,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -453,6 +481,7 @@ public func loadSources(
 
 /// Loads a `SourceConfig` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfig(
     _ sourceConfig: SourceConfig,
     preloadAllSources: Bool = false,
@@ -460,8 +489,8 @@ public func loadSourceConfig(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         sourceConfig,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -473,6 +502,7 @@ public func loadSourceConfig(
 
 /// Loads an array of `SourceConfig`s into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfigs(
     _ sourceConfigs: [SourceConfig],
     preloadAllSources: Bool = false,
@@ -480,8 +510,8 @@ public func loadSourceConfigs(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         sourceConfigs,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -493,6 +523,7 @@ public func loadSourceConfigs(
 
 /// Loads an array of `SourceConfig`s into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfigs(
     _ sourceConfigs: SourceConfig...,
     preloadAllSources: Bool = false,
@@ -500,8 +531,8 @@ public func loadSourceConfigs(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         sourceConfigs,
         preloadAllSources: preloadAllSources,
         replayMode: replayMode,
@@ -513,13 +544,14 @@ public func loadSourceConfigs(
 
 /// Loads a `PlaylistConfig` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadPlaylistConfig(
     _ playlistConfig: PlaylistConfig,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.load(
+) async throws {
+    try await PlayerWorld.sharedWorld.load(
         playlistConfig,
         timeout: timeout,
         file: file,
@@ -529,40 +561,44 @@ public func loadPlaylistConfig(
 
 /// Waits until the Player has played back the specified amount of time or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func play(
     for time: TimeInterval,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.play(for: time, timeout: timeout, file: file, line: line)
+) async throws {
+    try await PlayerWorld.sharedWorld.play(for: time, timeout: timeout, file: file, line: line)
 }
 
 /// Waits until the Player has played back until the specified time or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func play(
     until time: TimeInterval,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    PlayerWorld.sharedWorld.play(until: time, timeout: timeout, file: file, line: line)
+) async throws {
+    try await PlayerWorld.sharedWorld.play(until: time, timeout: timeout, file: file, line: line)
 }
 
 /// Waits for the specified amount of time by blocking the calling thread.
-public func sleep(time: TimeInterval) {
-    PlayerWorld.sharedWorld.wait(for: time)
+@MainActor
+public func sleep(time: TimeInterval) async {
+    await PlayerWorld.sharedWorld.wait(for: time)
 }
 
 /// Waits until the specified playerBlock returns true or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func waitUntil(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
     line: UInt = #line,
     until playerBlock: @escaping (Player) -> Bool
-) {
-    PlayerWorld.sharedWorld.wait(timeout: timeout, file: file, line: line, until: playerBlock)
+) async {
+    await PlayerWorld.sharedWorld.wait(timeout: timeout, file: file, line: line, until: playerBlock)
 }
 
 /// Sets the internal reference for the player instance to `nil`,
@@ -570,44 +606,62 @@ public func waitUntil(
 ///
 /// For verifying this, `safeVerifyPlayer` should be used,
 /// calling any other method from PlayerTest APIs will cause a crash.
+@MainActor
 public func deallocPlayer() {
     PlayerWorld.sharedWorld.deallocPlayer()
 }
 
 /// This stubs all requests made via standard iOS network APIs (URLSession, URLConnection)
 /// to return the standard "not connected to internet" error
-public func stubNoInternet(_ testBlock: () -> Void) {
-    PlayerWorld.sharedWorld.stubNoInternet(testBlock)
+@MainActor
+public func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
+    try await PlayerWorld.sharedWorld.stubNoInternet(testBlock)
 }
 
 /// Starts listening for the specified MultipleEventsExpectation before executing the passed playerViewBlock.
 /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
+@MainActor
+@discardableResult
 public func callPlayerViewAndExpectEvents(
     _ playerViewBlock: @escaping (PlayerView) -> Void,
     _ multipleEventsExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    eventHandlerBlock: (([Event]) -> Void)? = nil
-) {
-    PlayerWorld.sharedWorld.callPlayerViewAndExpectEvents(
+    line: UInt = #line
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.callPlayerViewAndExpectEvents(
         playerViewBlock,
         multipleEventsExpectation,
         timeout: timeout,
         file: file,
-        line: line,
-        eventHandlerBlock: eventHandlerBlock
+        line: line
     )
 }
 
 /// Executes the passed block with the PlayerView as argument.
 /// Use this function to call PlayerView API as part of the test.
+@MainActor
 public func callPlayerView(
     _ playerViewBlock: @escaping (PlayerView) -> Void,
     file: StaticString = #file,
     line: UInt = #line
 ) {
     PlayerWorld.sharedWorld.callPlayerView(
+        playerViewBlock,
+        file: file,
+        line: line
+    )
+}
+
+/// Executes the passed block with the PlayerView as argument.
+/// Use this function to call PlayerView API as part of the test.
+@MainActor
+public func callPlayerView(
+    _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
+    file: StaticString = #file,
+    line: UInt = #line
+) async throws {
+    try await PlayerWorld.sharedWorld.callPlayerView(
         playerViewBlock,
         file: file,
         line: line

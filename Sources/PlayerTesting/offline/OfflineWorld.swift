@@ -11,6 +11,7 @@ import BitmovinPlayerCore
 import Foundation
 import XCTest
 
+@MainActor
 internal class OfflineWorld {
     private(set) static var sharedWorld = OfflineWorld()
 
@@ -30,16 +31,11 @@ internal class OfflineWorld {
         file: StaticString = #file,
         line: UInt = #line,
         _ testBlock: OfflineTestBlock
-    ) {
-        _currentOfflineTest?.tearDown()
+    ) async throws {
+        try await _currentOfflineTest?.tearDown()
         _currentOfflineTest = OfflineTest()
 
-        // defer added to make sure clean up of test data still happens when test throws
-        defer {
-            currentOfflineTest?.tearDown()
-            _currentOfflineTest = nil
-        }
-        currentOfflineTest?.startOfflineTest(
+        try await currentOfflineTest?.startOfflineTest(
             offlineConfig: offlineConfig,
             failOnError: failOnErrorEnabled,
             waitForSuspendedDownloadsRestoring: waitForSuspendedDownloadsRestoring,
@@ -47,6 +43,9 @@ internal class OfflineWorld {
             line: line,
             testBlock
         )
+
+        try await currentOfflineTest?.tearDown()
+        _currentOfflineTest = nil
     }
 
     private func assertStartOfflineTest() {
