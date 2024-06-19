@@ -7,7 +7,9 @@
 //
 
 import OHHTTPStubs
+#if SWIFT_PACKAGE
 import OHHTTPStubsSwift
+#endif
 
 extension PlayerTestCallPlayerApi {
     func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
