@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target = '14.0'
 
   s.source_files = 'Sources/**/*.swift'
-  s.swift_version = '5.3'
+  s.swift_version = '5.9'
 
   s.dependency 'BitmovinPlayerCore', '~> 3.77.0'
   s.dependency 'Nimble', '~> 12'
