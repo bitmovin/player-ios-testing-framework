@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'PlayerTesting'
-  s.version          = '2.2.0'
+  s.version          = '2.2.1'
   s.summary          = '🚀 Automatically test your streams with the Bitmovin Player.'
   s.description      = '🚀 Automatically test your streams with the Bitmovin Player.'
   s.homepage         = 'https://github.com/bitmovin-engineering/player-ios-testing-framework'
