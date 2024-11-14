@@ -30,6 +30,7 @@ public enum ViewHierarchyBuildMode {
 }
 
 /// Provides all necessary API to conveniently write system tests.
+@MainActor
 internal protocol PlayerTestLifecycleApi {
     func startPlayerTest(
         config: PlayerConfig,
@@ -45,6 +46,7 @@ internal protocol PlayerTestLifecycleApi {
     ) async throws
 }
 
+@MainActor
 internal protocol PlayerTestSingleEventExpectationApi {
     @discardableResult
     func expectEvent<T: PlayerEvent>(
@@ -79,6 +81,7 @@ internal protocol PlayerTestSingleEventExpectationApi {
     ) async throws -> T
 }
 
+@MainActor
 internal protocol PlayerTestMultipleEventsExpectationApi {
     @discardableResult
     func expectEvents(
@@ -97,6 +100,7 @@ internal protocol PlayerTestMultipleEventsExpectationApi {
     ) async throws -> [Event]
 }
 
+@MainActor
 internal protocol PlayerTestRejectEventApi {
     func rejectEvent<T: PlayerEvent>(
         file: StaticString,
@@ -127,6 +131,7 @@ internal protocol PlayerTestRejectEventApi {
     ) async throws
 }
 
+@MainActor
 internal protocol PlayerTestRejectEventsApi {
     func rejectEvents(
         file: StaticString,
@@ -143,6 +148,7 @@ internal protocol PlayerTestRejectEventsApi {
     ) async throws
 }
 
+@MainActor
 internal protocol PlayerTestCallPlayerAndExpectApi {
     @discardableResult
     func callPlayerAndExpectEvent<T: Event>(
@@ -181,6 +187,7 @@ internal protocol PlayerTestCallPlayerAndExpectApi {
     ) async throws -> [Event]
 }
 
+@MainActor
 internal protocol PlayerTestCallPlayerApi {
     func callPlayer(_ playerBlock: @escaping CallPlayerBlock)
 
@@ -191,6 +198,7 @@ internal protocol PlayerTestCallPlayerApi {
     func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void)
 }
 
+@MainActor
 internal protocol PlayerTestConvenienceApi {
     func createSource(sourceConfig: SourceConfig) -> Source
 
@@ -263,6 +271,7 @@ internal protocol PlayerTestConvenienceApi {
     func deallocPlayer()
 }
 
+@MainActor
 internal protocol PlayerViewTest {
     @discardableResult
     func callPlayerViewAndExpectEvents(

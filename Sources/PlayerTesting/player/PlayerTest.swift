@@ -316,6 +316,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             if multipleEventsExpectation.isNextExpectationMet(
                 receivedEvent: eventHolder
             ) {
+                guard !condition.isFulfilled else { return }
                 recordedEvents.append(eventHolder.event)
                 condition.fulfill()
             }
@@ -823,6 +824,7 @@ extension PlayerTest: PlayerViewTest {
             if multipleEventsExpectation.isNextExpectationMet(
                 receivedEvent: eventHolder
             ) {
+                guard !condition.isFulfilled else { return }
                 recordedEvents.append(eventHolder.event)
                 condition.fulfill()
             }

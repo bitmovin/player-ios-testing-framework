@@ -37,14 +37,17 @@ internal final class OfflineTest: NSObject {
 
 extension OfflineTest: OfflineContentManagerListener {
     func onOfflineError(_ event: OfflineErrorEvent, offlineContentManager: OfflineContentManager) {
-        guard failOnErrorEnabled,
-              let failOnErrorFile,
-              let failOnErrorLine else { return }
-        XCTFail(
-            "Error event was received: \(event.eventDescription)",
-            file: failOnErrorFile,
-            line: failOnErrorLine
-        )
+        Task { @MainActor [weak self] in
+            guard let self,
+                  self.failOnErrorEnabled,
+                  let failOnErrorFile,
+                  let failOnErrorLine else { return }
+            self.fail(
+                with: "Error event was received: \(event.eventDescription)",
+                file: failOnErrorFile,
+                line: failOnErrorLine
+            )
+        }
     }
 }
 
