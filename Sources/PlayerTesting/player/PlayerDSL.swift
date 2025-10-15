@@ -19,6 +19,7 @@ import Foundation
 ///   - failOnError: defines if tests should fail when receiving an error event
 ///   - setLicenseKeyForTesting: defines if a license key will be ensured if non is set in player config
 ///   - testBlock: test block to be executed
+@MainActor
 public func startPlayerTest(
     config: PlayerConfig = PlayerConfig(),
     buildViewHierarchyMode: ViewHierarchyBuildMode = .full,
@@ -45,6 +46,7 @@ public func startPlayerTest(
 
 /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
 public func expectEvent<T: PlayerEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
@@ -63,6 +65,7 @@ public func expectEvent<T: PlayerEvent>(
 
 /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
 public func expectEvent<T: SourceEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
@@ -81,6 +84,7 @@ public func expectEvent<T: SourceEvent>(
 
 /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
 public func expectEvent<T: PlayerEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
@@ -99,6 +103,7 @@ public func expectEvent<T: PlayerEvent>(
 
 /// Listens for the specified SingleEventExpectation to be emitted and blocks the calling thread until the event is
 /// received or the timeout is reached. In the case where the event is received, the eventHandlerBlock is called.
+@MainActor
 public func expectEvent<T: SourceEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
@@ -119,6 +124,7 @@ public func expectEvent<T: SourceEvent>(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
 public func expectEvents(
     _ eventClasses: Event.Type...,
     timeout: TimeInterval? = nil,
@@ -139,6 +145,7 @@ public func expectEvents(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
 public func expectEvents(
     _ eventClasses: [Event.Type],
     timeout: TimeInterval? = nil,
@@ -159,6 +166,7 @@ public func expectEvents(
 /// the expectation is fulfilled in the specified order or the timeout is reached.
 /// In the case where the expectation is fulfilled, the eventsHandlerBlock is called with an ordered list of the
 /// Events
+@MainActor
 public func expectEvents(
     _ multipleEventExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
@@ -177,6 +185,7 @@ public func expectEvents(
 
 /// Listens for the specified BitmovinEvent while the test continues in the testContinuationBlock.
 /// If the event is received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: PlayerEvent>(
     file: StaticString = #file,
     line: UInt = #line,
@@ -188,6 +197,7 @@ public func rejectEvent<T: PlayerEvent>(
 
 /// Listens for the specified BitmovinEvent while the test continues in the testContinuationBlock.
 /// If the event is received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: SourceEvent>(
     file: StaticString = #file,
     line: UInt = #line,
@@ -199,6 +209,7 @@ public func rejectEvent<T: SourceEvent>(
 
 /// Listens for the specified SingleEventExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: PlayerEvent>(
     file: StaticString = #file,
     line: UInt = #line,
@@ -210,6 +221,7 @@ public func rejectEvent<T: PlayerEvent>(
 
 /// Listens for the specified SingleEventExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvent<T: SourceEvent>(
     file: StaticString = #file,
     line: UInt = #line,
@@ -221,6 +233,7 @@ public func rejectEvent<T: SourceEvent>(
 
 /// Listens for the specified BitmovinEvents while the test continues in the testContinuationBlock.
 /// If the events are received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
@@ -232,6 +245,7 @@ public func rejectEvents(
 
 /// Listens for the specified BitmovinEvents while the test continues in the testContinuationBlock.
 /// If the events are received during execution of the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
@@ -243,6 +257,7 @@ public func rejectEvents(
 
 /// Listens for the specified MultipleEventsExpectation while the test continues in the testContinuationBlock.
 /// If the rejectedExpectation fulfills during the testContinuationBlock, the test fails.
+@MainActor
 public func rejectEvents(
     file: StaticString = #file,
     line: UInt = #line,
@@ -256,6 +271,7 @@ public func rejectEvents(
 /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
 /// version of calling callPlayer and expectEvent after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
 public func callPlayerAndExpectEvent<T: Event>(
     _ playerBlock: @escaping (Player) -> Void,
     _ eventClass: T.Type,
@@ -278,6 +294,7 @@ public func callPlayerAndExpectEvent<T: Event>(
 /// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
 /// version of calling callPlayer and expectEvent after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
 public func callPlayerAndExpectEvent<T: Event>(
     _ playerBlock: @escaping (Player) -> Void,
     _ eventExpectation: SingleEventExpectation<T>,
@@ -300,6 +317,7 @@ public func callPlayerAndExpectEvent<T: Event>(
 /// When the events are received in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
 public func callPlayerAndExpectEvents(
     _ playerBlock: @escaping (Player) -> Void,
     _ eventClasses: [Event.Type],
@@ -322,6 +340,7 @@ public func callPlayerAndExpectEvents(
 /// When the events are received in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerBlock.
+@MainActor
 public func callPlayerAndExpectEvents(
     _ playerBlock: @escaping (Player) -> Void,
     _ eventClasses: Event.Type...,
@@ -344,6 +363,7 @@ public func callPlayerAndExpectEvents(
 /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
 /// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
 /// Useful when events are directly tied to calls in the playerApiBlock.
+@MainActor
 public func callPlayerAndExpectEvents(
     _ playerBlock: @escaping (Player) -> Void,
     _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -364,23 +384,27 @@ public func callPlayerAndExpectEvents(
 
 /// Executes the passed block with the BitmovinPlayer as argument.
 /// Use this function to call Player API as part of the test.
+@MainActor
 public func callPlayer(_ playerBlock: @escaping (Player) -> Void) {
     PlayerWorld.sharedWorld.callPlayer(playerBlock)
 }
 
 /// Executes the passed block with the BitmovinPlayer as argument.
 /// Use this function to perform assertions in the scope of the Player.
+@MainActor
 public func verifyPlayer(_ playerBlock: @escaping (Player) -> Void) {
     PlayerWorld.sharedWorld.verifyPlayer(playerBlock)
 }
 
 /// Executes the passed block with the optional BitmovinPlayer as argument.
 /// Use this function to perform assertions in the scope of the Player.
+@MainActor
 public func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
     PlayerWorld.sharedWorld.safeVerifyPlayer(playerBlock)
 }
 
 /// Creates a `Source` from the given `SourceConfig`.
+@MainActor
 public func createSource(sourceConfig: SourceConfig) -> Source {
     PlayerWorld.sharedWorld.createSource(sourceConfig: sourceConfig)
 }
@@ -393,6 +417,7 @@ public func createSource(sourceConfig: SourceConfig) -> Source {
 
 /// Loads a `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSource(
     _ source: Source,
     preloadAllSources: Bool = false,
@@ -413,6 +438,7 @@ public func loadSource(
 
 /// Loads array of `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSources(
     _ sources: [Source],
     preloadAllSources: Bool = false,
@@ -433,6 +459,7 @@ public func loadSources(
 
 /// Loads array of `Source` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSources(
     _ sources: Source...,
     preloadAllSources: Bool = false,
@@ -453,6 +480,7 @@ public func loadSources(
 
 /// Loads a `SourceConfig` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfig(
     _ sourceConfig: SourceConfig,
     preloadAllSources: Bool = false,
@@ -473,6 +501,7 @@ public func loadSourceConfig(
 
 /// Loads an array of `SourceConfig`s into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfigs(
     _ sourceConfigs: [SourceConfig],
     preloadAllSources: Bool = false,
@@ -493,6 +522,7 @@ public func loadSourceConfigs(
 
 /// Loads an array of `SourceConfig`s into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadSourceConfigs(
     _ sourceConfigs: SourceConfig...,
     preloadAllSources: Bool = false,
@@ -513,6 +543,7 @@ public func loadSourceConfigs(
 
 /// Loads a `PlaylistConfig` into the Player and blocks the calling thread until the source is successfully
 /// loaded or the timeout is reached.
+@MainActor
 public func loadPlaylistConfig(
     _ playlistConfig: PlaylistConfig,
     timeout: TimeInterval? = nil,
@@ -529,6 +560,7 @@ public func loadPlaylistConfig(
 
 /// Waits until the Player has played back the specified amount of time or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func play(
     for time: TimeInterval,
     timeout: TimeInterval? = nil,
@@ -540,6 +572,7 @@ public func play(
 
 /// Waits until the Player has played back until the specified time or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func play(
     until time: TimeInterval,
     timeout: TimeInterval? = nil,
@@ -550,12 +583,14 @@ public func play(
 }
 
 /// Waits for the specified amount of time by blocking the calling thread.
+@MainActor
 public func sleep(time: TimeInterval) {
     PlayerWorld.sharedWorld.wait(for: time)
 }
 
 /// Waits until the specified playerBlock returns true or until the timeout is reached.
 /// Blocks the calling thread for the duration.
+@MainActor
 public func waitUntil(
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
@@ -570,18 +605,21 @@ public func waitUntil(
 ///
 /// For verifying this, `safeVerifyPlayer` should be used,
 /// calling any other method from PlayerTest APIs will cause a crash.
+@MainActor
 public func deallocPlayer() {
     PlayerWorld.sharedWorld.deallocPlayer()
 }
 
 /// This stubs all requests made via standard iOS network APIs (URLSession, URLConnection)
 /// to return the standard "not connected to internet" error
+@MainActor
 public func stubNoInternet(_ testBlock: () -> Void) {
     PlayerWorld.sharedWorld.stubNoInternet(testBlock)
 }
 
 /// Starts listening for the specified MultipleEventsExpectation before executing the passed playerViewBlock.
 /// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
+@MainActor
 public func callPlayerViewAndExpectEvents(
     _ playerViewBlock: @escaping (PlayerView) -> Void,
     _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -602,6 +640,7 @@ public func callPlayerViewAndExpectEvents(
 
 /// Executes the passed block with the PlayerView as argument.
 /// Use this function to call PlayerView API as part of the test.
+@MainActor
 public func callPlayerView(
     _ playerViewBlock: @escaping (PlayerView) -> Void,
     file: StaticString = #file,

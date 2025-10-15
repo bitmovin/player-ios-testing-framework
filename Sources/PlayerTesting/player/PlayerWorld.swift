@@ -10,6 +10,7 @@ import BitmovinPlayerCore
 import Foundation
 import XCTest
 
+@MainActor
 internal class PlayerWorld {
     private(set) static var sharedWorld = PlayerWorld()
 
