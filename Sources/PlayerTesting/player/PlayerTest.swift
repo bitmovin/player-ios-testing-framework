@@ -15,6 +15,7 @@ public typealias PlayerTestBlock = () -> Void
 public let defaultGlobalTimeout: TimeInterval = 30_000
 internal let defaultTimeout = 10.0
 
+@MainActor
 internal final class PlayerTest {
     var appBundleMock: Bundle?
     var player: Player!
