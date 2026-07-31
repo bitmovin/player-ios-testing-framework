@@ -19,6 +19,7 @@ internal final class OfflineTest: NSObject {
     private var failOnErrorFile: StaticString?
     private var failOnErrorLine: UInt?
     private var offlineContentManagers: [OfflineContentManager] = []
+    private let playerTestLogger = PlayerTestLogger()
 
     func tearDown() async throws {
         try await cleanupTestData()
@@ -39,10 +40,10 @@ extension OfflineTest: OfflineContentManagerListener {
     func onOfflineError(_ event: OfflineErrorEvent, offlineContentManager: OfflineContentManager) {
         Task { @MainActor [weak self] in
             guard let self,
-                  self.failOnErrorEnabled,
+                  failOnErrorEnabled,
                   let failOnErrorFile,
                   let failOnErrorLine else { return }
-            self.fail(
+            fail(
                 with: "Error event was received: \(event.eventDescription)",
                 file: failOnErrorFile,
                 line: failOnErrorLine
@@ -60,9 +61,13 @@ extension OfflineTest: OfflineTestLifecycleApi {
         line: UInt = #line,
         _ testBlock: OfflineTestBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         self.failOnErrorEnabled = failOnErrorEnabled
-        self.failOnErrorFile = file
-        self.failOnErrorLine = line
+        failOnErrorFile = file
+        failOnErrorLine = line
         OfflineManager.initializeOfflineManager(offlineConfig: offlineConfig)
         offlineManager = OfflineManager.sharedInstance()
         if !offlineManager.areSuspendedDownloadsRestored, waitForSuspendedDownloadsRestoring {
@@ -96,7 +101,11 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await callOfflineContentManagerAndExpectEvent(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await callOfflineContentManagerAndExpectEvent(
             offlineContentManager,
             offlineContentManagerBlock,
             PlainEventExpectation(eventClass),
@@ -120,7 +129,11 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEventBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: eventExpectation,
             timeout: timeout,
@@ -145,7 +158,11 @@ extension OfflineTest: OfflineTestCallOfflineContentManagerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [OfflineEvent] {
-        try await expectEventsBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventsBlocking(
             offlineContentManager,
             multipleEventsExpectation: multipleEventsExpectation,
             timeout: timeout,
@@ -168,7 +185,11 @@ extension OfflineTest: OfflineTestSingleEventExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEvent(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEvent(
             offlineContentManager,
             PlainEventExpectation(eventClass),
             timeout: timeout,
@@ -187,7 +208,11 @@ extension OfflineTest: OfflineTestSingleEventExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEventBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: eventExpectation,
             timeout: timeout,
@@ -235,7 +260,11 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [OfflineEvent] {
-        try await expectEventsBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventsBlocking(
             offlineContentManager,
             multipleEventsExpectation: multipleEventExpectation,
             timeout: timeout,
@@ -253,8 +282,8 @@ extension OfflineTest: OfflineTestMultipleEventsExpectationApi {
         onListenerAttachedBlock: OnListenerAttachedBlock? = nil
     ) async throws -> [OfflineEvent] {
         let eventListenerProxy = OfflineContentManagerEventListenerProxy()
-        eventListenerProxy.onEventCallback = { event in
-            log(.info("Received `OfflineEvent` inside `expectEvents`: '\(event.name)'"))
+        eventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "expectEvents")
         }
         offlineContentManager.add(listener: eventListenerProxy)
 
@@ -324,6 +353,10 @@ extension OfflineTest: OfflineTestRejectEventApi {
         _ eventClass: T.Type,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEvent(
             offlineContentManager,
             file: file,
@@ -342,6 +375,10 @@ extension OfflineTest: OfflineTestRejectEventApi {
         _ eventExpectation: SingleEventExpectation<T>,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEventBlocking(
             offlineContentManager,
             file: file,
@@ -382,6 +419,10 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         _ eventClasses: [OfflineEvent.Type],
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEvents(
             offlineContentManager,
             file: file,
@@ -400,6 +441,10 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEventsBlocking(
             offlineContentManager,
             file: file,
@@ -418,8 +463,8 @@ extension OfflineTest: OfflineTestRejectEventsApi {
         testContinuationBlock: TestContinuationBlock
     ) async throws {
         let eventListenerProxy = OfflineContentManagerEventListenerProxy()
-        eventListenerProxy.onEventCallback = { event in
-            log(.info("Received `OfflineEvent` inside `rejectEvents`: '\(event.name)'"))
+        eventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "rejectEvents")
         }
         offlineContentManager.add(listener: eventListenerProxy)
 
@@ -460,14 +505,17 @@ extension OfflineTest: OfflineTestConvenienceApi {
         id: String? = nil,
         clean: Bool = true
     ) async throws -> OfflineContentManager {
-        let offlineContentManager: OfflineContentManager
-        if let id {
-            offlineContentManager = try offlineManager.offlineContentManager(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        let offlineContentManager: OfflineContentManager = if let id {
+            try offlineManager.offlineContentManager(
                 for: sourceConfig,
                 id: id
             )
         } else {
-            offlineContentManager = try offlineManager.offlineContentManager(for: sourceConfig)
+            try offlineManager.offlineContentManager(for: sourceConfig)
         }
         if clean {
             try await resetOfflineContentManager(offlineContentManager)
@@ -485,8 +533,12 @@ extension OfflineTest: OfflineTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         offlineContentManager.download()
-        try await self.expectEvent(
+        try await expectEvent(
             offlineContentManager,
             FilteredOfflineEventExpectation(
                 offlineContentManager,
@@ -508,6 +560,10 @@ extension OfflineTest: OfflineTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: PlainOfflineEventExpectation(
@@ -532,6 +588,10 @@ extension OfflineTest: OfflineTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await expectEventBlocking(
             offlineContentManager,
             singleEventExpectation: PlainOfflineEventExpectation(
@@ -554,12 +614,12 @@ private extension OfflineTest {
         try await offlineContentManagers.forEach(resetOfflineContentManager)
         offlineContentManagers = []
         offlineManager = nil
+        playerTestLogger.reset()
     }
 
     private func resetOfflineContentManager(_ offlineContentManager: OfflineContentManager) async throws {
         switch offlineContentManager.offlineState {
         case .downloading, .suspended:
-            // swiftlint:disable opening_brace
             try await callOfflineContentManagerAndExpectEvent(
                 offlineContentManager,
                 { offlineContentManager in
@@ -568,7 +628,6 @@ private extension OfflineTest {
                 ContentDownloadCanceledEvent.self,
                 timeout: 10
             )
-            // swiftlint:enable opening_brace
         case .downloaded:
             offlineContentManager.deleteOfflineData()
         default:

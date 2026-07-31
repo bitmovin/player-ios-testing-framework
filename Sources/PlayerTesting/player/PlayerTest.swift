@@ -34,6 +34,7 @@ internal final class PlayerTest {
     private var activeConditions: [Condition] = []
     private var viewController: UIViewController?
     private var window: UIWindow?
+    private let playerTestLogger = PlayerTestLogger()
 
     func tearDown() {
         cleanupTestData()
@@ -50,7 +51,6 @@ internal final class PlayerTest {
     }
 }
 
-// swiftlint:disable:this function_default_parameter_at_end
 extension PlayerTest: PlayerTestLifecycleApi {
     func startPlayerTest(
         config: PlayerConfig = PlayerConfig(),
@@ -64,6 +64,11 @@ extension PlayerTest: PlayerTestLifecycleApi {
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+
         if setLicenseKeyForTesting, config.key == nil {
             // Override the LicenseKey for testing
             config.key = PlayerTestingConfig.playerLicenseKeyForTesting
@@ -103,7 +108,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
         window: UIWindow?
     ) {
         switch mode {
-        case .viewOnly(let playerViewConfig):
+        case let .viewOnly(playerViewConfig):
             return (
                 PlayerView(
                     player: player,
@@ -113,7 +118,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
                 nil,
                 nil
             )
-        case .full(let playerViewConfig):
+        case let .full(playerViewConfig):
             let (viewController, window) = buildViewController()
             let playerView = PlayerView(
                 player: player,
@@ -158,10 +163,10 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
         let handleHeartbeat = { [weak self] in
             guard let self else { return }
-            self.heartbeatWindowQueueItem?.cancel()
-            self.heartbeatWindowQueueItem = nil
+            heartbeatWindowQueueItem?.cancel()
+            heartbeatWindowQueueItem = nil
 
-            self.heartbeatWindowQueueItem = DispatchWorkItem { [weak self] in
+            heartbeatWindowQueueItem = DispatchWorkItem { [weak self] in
                 guard let heartbeatWindowQueueItem = self?.heartbeatWindowQueueItem,
                       !heartbeatWindowQueueItem.isCancelled else {
                     return
@@ -175,13 +180,13 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + heartbeatWindow,
-                execute: self.heartbeatWindowQueueItem!
+                execute: heartbeatWindowQueueItem!
             )
         }
 
         let heartbeatWindowEventListenerProxy = EventListenerProxy()
-        heartbeatWindowEventListenerProxy.onEventCallback = { event in
-            log(.info("Received heartbeat event: '\(event.name)'"))
+        heartbeatWindowEventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "heartbeat")
         }
         self.heartbeatWindowEventListenerProxy = heartbeatWindowEventListenerProxy
 
@@ -189,7 +194,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
             handleHeartbeat()
         }
 
-        self.player.add(listener: heartbeatWindowEventListenerProxy)
+        player.add(listener: heartbeatWindowEventListenerProxy)
 
         handleHeartbeat()
     }
@@ -206,6 +211,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
 }
 
 // MARK: - Single event handling
+
 extension PlayerTest: PlayerTestSingleEventExpectationApi {
     @discardableResult
     internal func expectEvent<T: Event>(
@@ -214,7 +220,11 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEventBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventBlocking(
             singleEventExpectation: eventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -229,7 +239,11 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEvent(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEvent(
             PlainEventExpectation(eventClass),
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -245,6 +259,10 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         line: UInt = #line,
         onListenerAttachedBlock: OnListenerAttachedBlock? = nil
     ) async throws -> T {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         let events = try await expectEventsBlocking(
             multipleEventsExpectation: EventSequenceExpectation([singleEventExpectation]),
             timeout: timeout,
@@ -262,6 +280,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
 }
 
 // MARK: - Multiple events handling
+
 extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
     @discardableResult
     internal func expectEvents(
@@ -270,7 +289,11 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [Event] {
-        try await expectEvents(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEvents(
             EventSequenceExpectation(eventClasses),
             timeout: timeout,
             file: file,
@@ -285,7 +308,11 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [Event] {
-        try await expectEventsBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventsBlocking(
             multipleEventsExpectation: multipleEventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -293,7 +320,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         )
     }
 
-    // This methods handles Player and Source event expectations
+    /// This methods handles Player and Source event expectations
     private func expectEventsBlocking(
         multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
@@ -302,8 +329,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         onListenerAttachedBlock: OnListenerAttachedBlock? = nil
     ) async throws -> [Event] {
         let eventListenerProxy = EventListenerProxy()
-        eventListenerProxy.onEventCallback = { event in
-            log(.info("Received `Event` inside `expectEvent`: '\(event.name)'"))
+        eventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "expectEvents")
         }
 
         player.add(listener: eventListenerProxy)
@@ -324,8 +351,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         }
 
         let sourceEventListenerProxy = SourceEventListenerProxy()
-        sourceEventListenerProxy.onEventCallback = { event in
-            log(.info("Received `SourceEvent` inside `expectEvent`: '\(event.name)'"))
+        sourceEventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "expectEvent")
         }
         multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
             if let source = (singleEventExpectation as? SingleSourceEventExpectation)?.source {
@@ -368,6 +395,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
 }
 
 // MARK: - Reject event handling
+
 extension PlayerTest: PlayerTestRejectEventApi {
     internal func rejectEvent<T: Event>(
         file: StaticString = #file,
@@ -375,6 +403,10 @@ extension PlayerTest: PlayerTestRejectEventApi {
         _ eventClass: T.Type,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEventBlocking(
             file: file,
             line: line,
@@ -389,6 +421,10 @@ extension PlayerTest: PlayerTestRejectEventApi {
         _ eventExpectation: SingleEventExpectation<T>,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEventBlocking(
             file: file,
             line: line,
@@ -417,6 +453,7 @@ extension PlayerTest: PlayerTestRejectEventApi {
 }
 
 // MARK: - Reject events handling
+
 extension PlayerTest: PlayerTestRejectEventsApi {
     internal func rejectEvents(
         file: StaticString = #file,
@@ -424,6 +461,10 @@ extension PlayerTest: PlayerTestRejectEventsApi {
         _ eventClasses: [Event.Type],
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEvents(
             file: file,
             line: line,
@@ -438,6 +479,10 @@ extension PlayerTest: PlayerTestRejectEventsApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         _ testContinuationBlock: TestContinuationBlock
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await rejectEventsBlocking(
             file: file,
             line: line,
@@ -454,8 +499,8 @@ extension PlayerTest: PlayerTestRejectEventsApi {
         testContinuationBlock: TestContinuationBlock
     ) async throws {
         let eventListenerProxy = EventListenerProxy()
-        eventListenerProxy.onEventCallback = { event in
-            log(.info("Received `Event` inside `rejectEvents`: '\(event.name)'"))
+        eventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "rejectEvents")
         }
 
         player.add(listener: eventListenerProxy)
@@ -487,6 +532,7 @@ extension PlayerTest: PlayerTestRejectEventsApi {
 }
 
 // MARK: - Call player handling
+
 extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
     @discardableResult
     internal func callPlayerAndExpectEvent<T: Event>(
@@ -496,7 +542,11 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await expectEventBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventBlocking(
             singleEventExpectation: eventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -514,7 +564,11 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> T {
-        try await callPlayerAndExpectEvent(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await callPlayerAndExpectEvent(
             playerBlock,
             PlainEventExpectation(eventClass),
             timeout: timeout,
@@ -531,7 +585,11 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [Event] {
-        try await callPlayerAndExpectEvents(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await callPlayerAndExpectEvents(
             playerBlock,
             EventSequenceExpectation(eventClasses),
             timeout: timeout ?? defaultTimeout,
@@ -548,7 +606,11 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [Event] {
-        try await expectEventsBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectEventsBlocking(
             multipleEventsExpectation: multipleEventsExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -561,26 +623,47 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
 
 extension PlayerTest: PlayerTestCallPlayerApi {
     internal func callPlayer(_ playerBlock: @escaping CallPlayerBlock) {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         playerBlock(player)
     }
 
     internal func callPlayer(_ playerBlock: @escaping AsyncCallPlayerBlock) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await playerBlock(player)
     }
 
     internal func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock) {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         playerBlock(player)
     }
 
     internal func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         playerBlock(player)
     }
 }
 
 // MARK: - Convenience helpers
+
 extension PlayerTest: PlayerTestConvenienceApi {
     internal func createSource(sourceConfig: SourceConfig) -> Source {
-        SourceFactory.createSource(from: sourceConfig)
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return SourceFactory.createSource(from: sourceConfig)
     }
 
     internal func load(
@@ -591,6 +674,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await load(
             [source],
             preloadAllSources: preloadAllSources,
@@ -609,6 +696,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         let options = PlaylistOptions(
             preloadAllSources: preloadAllSources,
             replayMode: replayMode
@@ -629,6 +720,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await load(
             [sourceConfig],
             preloadAllSources: preloadAllSources,
@@ -647,6 +742,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await load(
             sourceConfigs.map { createSource(sourceConfig: $0) },
             preloadAllSources: preloadAllSources,
@@ -663,7 +762,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
-        // swiftlint:disable:next multiline_arguments_brackets
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await callPlayerAndExpectEvents({ player in
                 player.load(playlistConfig: playlistConfig)
             },
@@ -680,6 +782,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await play(
             until: self.player.currentTime + time,
             timeout: timeout,
@@ -694,6 +800,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         try await expectEventBlocking(
             singleEventExpectation: FilteredEventExpectation(TimeChangedEvent.self) { timeChangedEvent -> Bool in
                 timeChangedEvent.currentTime >= time
@@ -709,6 +819,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
     }
 
     internal func wait(for time: TimeInterval) async {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         let condition = Condition(description: "wait for")
 
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .milliseconds(Int(time * 1_000))) {
@@ -726,6 +840,10 @@ extension PlayerTest: PlayerTestConvenienceApi {
         line: UInt = #line,
         until playerBlock: @escaping (Player) -> Bool
     ) async {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         let condition = Condition(description: "wait until")
 
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak player] timer in
@@ -748,11 +866,16 @@ extension PlayerTest: PlayerTestConvenienceApi {
     }
 
     internal func deallocPlayer() {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         player = nil
     }
 }
 
 // MARK: - PlayerView Testing
+
 extension PlayerTest: PlayerViewTest {
     @discardableResult
     func callPlayerViewAndExpectEvents(
@@ -762,7 +885,11 @@ extension PlayerTest: PlayerViewTest {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws -> [Event] {
-        try await expectPlayerViewEventsBlocking(
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
+        return try await expectPlayerViewEventsBlocking(
             multipleEventsExpectation: multipleEventsExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -777,6 +904,10 @@ extension PlayerTest: PlayerViewTest {
         file: StaticString = #file,
         line: UInt = #line
     ) {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         guard let playerView else {
             XCTFail("No `PlayerView` was created for this test case!", file: file, line: line)
             return
@@ -790,6 +921,10 @@ extension PlayerTest: PlayerViewTest {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
+        playerTestLogger.logFunctionStart()
+        defer {
+            playerTestLogger.logFunctionEnd()
+        }
         guard let playerView else {
             XCTFail("No `PlayerView` was created for this test case!", file: file, line: line)
             return
@@ -811,8 +946,8 @@ extension PlayerTest: PlayerViewTest {
         }
 
         let eventListenerProxy = PlayerViewEventListenerProxy()
-        eventListenerProxy.onEventCallback = { event in
-            log(.info("Received `PlayerViewEvent` inside `expectEvent`: '\(event.name)'"))
+        eventListenerProxy.onEventCallback = { [weak playerTestLogger] event, sender in
+            playerTestLogger?.log(event: event, sender: sender, functionName: "expectEvent")
         }
         playerView.add(listener: eventListenerProxy)
 
@@ -879,6 +1014,7 @@ extension PlayerTest {
 }
 
 // MARK: - Clean-up
+
 private extension PlayerTest {
     private func cleanupTestData() {
         // This can happen from tests which are not using the PlayerTest features but extending it
@@ -897,6 +1033,7 @@ private extension PlayerTest {
         globalTimeoutQueueItem = nil
         heartbeatWindowQueueItem?.cancel()
         heartbeatWindowQueueItem = nil
+        playerTestLogger.reset()
     }
 }
 
