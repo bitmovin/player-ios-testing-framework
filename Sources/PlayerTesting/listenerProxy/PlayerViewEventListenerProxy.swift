@@ -91,4 +91,17 @@ extension PlayerViewEventListenerProxy: UserInterfaceListener {
     public func onScalingModeChanged(_ event: ScalingModeChangedEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
+
+    nonisolated func onPictureInPictureAvailabilityChanged(
+        _ event: PictureInPictureAvailabilityChangedEvent,
+        view: PlayerView
+    ) {
+        onEvent(event, view: view)
+    }
+
+#if !os(tvOS)
+    nonisolated func onVideoBoundsChanged(_ event: VideoBoundsChangedEvent, view: PlayerView) {
+        onEvent(event, view: view)
+    }
+#endif
 }

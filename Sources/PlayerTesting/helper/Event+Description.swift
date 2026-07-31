@@ -15,20 +15,20 @@ internal extension Event {
         case let errorEvent as PlayerErrorEvent:
             return """
                 '\(String(describing: type(of: self)))' \
-                code: \(errorEvent.code.rawValue), \
+                errorCode: \(errorEvent.errorCode), \
                 message: '\(errorEvent.message)'
                 """
         case let errorEvent as SourceErrorEvent:
             return """
                 '\(String(describing: type(of: self)))' \
-                code: \(errorEvent.code.rawValue), \
+                errorCode: \(errorEvent.errorCode), \
                 message: '\(errorEvent.message)'
                 """
 #if os(iOS)
         case let errorEvent as OfflineErrorEvent:
             return """
                 '\(String(describing: type(of: self)))' \
-                code: \(errorEvent.code.rawValue), \
+                errorCode: \(errorEvent.errorCode), \
                 message: '\(errorEvent.message)'
                 """
 #endif
