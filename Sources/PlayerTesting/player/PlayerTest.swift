@@ -204,7 +204,9 @@ extension PlayerTest: PlayerTestLifecycleApi {
 
         let window = UIWindow()
         window.rootViewController = viewController
-        window.isHidden = false
+        // Integration tests relying on visibility checks (e.g. viewability) require the window
+        // to be key, not only visible.
+        window.makeKeyAndVisible()
 
         return (viewController, window)
     }
@@ -787,8 +789,8 @@ extension PlayerTest: PlayerTestConvenienceApi {
             playerTestLogger.logFunctionEnd()
         }
         try await play(
-            until: self.player.currentTime + time,
-            timeout: timeout,
+            until: player.currentTime + time,
+            timeout: timeout ?? time + defaultTimeout,
             file: file,
             line: line
         )
