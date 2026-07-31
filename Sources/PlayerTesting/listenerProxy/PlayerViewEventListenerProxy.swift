@@ -13,7 +13,7 @@ import XCTest
 internal class PlayerViewEventListenerProxy: NSObject {
     private var eventRecordings: [String: (Event) -> Void] = [:]
     private var onHeartbeatCallback: (() -> Void)?
-    var onEventCallback: ((_ event: Event) -> Void)?
+    var onEventCallback: ((_ event: Event, _ sender: String) -> Void)?
 
     func registerEvent<T: Event>(
         _ eventClass: Event.Type,
@@ -39,7 +39,7 @@ internal class PlayerViewEventListenerProxy: NSObject {
     }
 
     private func onEvent(_ event: Event, view: PlayerView) {
-        onEventCallback?(event)
+        onEventCallback?(event, view.readableReference)
 
         let className = String(describing: type(of: event))
         eventRecordings[className]?(event)
@@ -48,47 +48,66 @@ internal class PlayerViewEventListenerProxy: NSObject {
 }
 
 extension PlayerViewEventListenerProxy: UserInterfaceListener {
-    public func onFullscreenEnter(_ event: FullscreenEnterEvent, view: PlayerView) {
+    func onFullscreenEnter(_ event: FullscreenEnterEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onFullscreenExit(_ event: FullscreenExitEvent, view: PlayerView) {
+    func onFullscreenExit(_ event: FullscreenExitEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onFullscreenEnabled(_ event: FullscreenEnabledEvent, view: PlayerView) {
+    func onFullscreenEnabled(_ event: FullscreenEnabledEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onFullscreenDisabled(_ event: FullscreenDisabledEvent, view: PlayerView) {
+    func onFullscreenDisabled(_ event: FullscreenDisabledEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
+    func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onPictureInPictureEntered(_ event: PictureInPictureEnteredEvent, view: PlayerView) {
+    func onPictureInPictureEntered(_ event: PictureInPictureEnteredEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onPictureInPictureExit(_ event: PictureInPictureExitEvent, view: PlayerView) {
+    func onPictureInPictureExit(_ event: PictureInPictureExitEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onPictureInPictureExited(_ event: PictureInPictureExitedEvent, view: PlayerView) {
+    func onPictureInPictureExited(_ event: PictureInPictureExitedEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onControlsShow(_ event: ControlsShowEvent, view: PlayerView) {
+    func onControlsShow(_ event: ControlsShowEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onControlsHide(_ event: ControlsHideEvent, view: PlayerView) {
+    func onControlsHide(_ event: ControlsHideEvent, view: PlayerView) {
         onEvent(event, view: view)
     }
 
-    public func onScalingModeChanged(_ event: ScalingModeChangedEvent, view: PlayerView) {
+    func onScalingModeChanged(_ event: ScalingModeChangedEvent, view: PlayerView) {
         onEvent(event, view: view)
+    }
+
+    nonisolated func onPictureInPictureAvailabilityChanged(
+        _ event: PictureInPictureAvailabilityChangedEvent,
+        view: PlayerView
+    ) {
+        onEvent(event, view: view)
+    }
+
+#if !os(tvOS)
+    nonisolated func onVideoBoundsChanged(_ event: VideoBoundsChangedEvent, view: PlayerView) {
+        onEvent(event, view: view)
+    }
+#endif
+}
+
+extension PlayerView {
+    nonisolated var readableReference: String {
+        "PlayerView - \(Unmanaged.passUnretained(self).toOpaque())"
     }
 }

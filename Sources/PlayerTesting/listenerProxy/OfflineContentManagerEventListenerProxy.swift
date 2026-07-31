@@ -17,7 +17,7 @@ import XCTest
 /// storing the blocks and calling them when an event occurs.
 internal class OfflineContentManagerEventListenerProxy: NSObject {
     private var eventRecordings: [String: (OfflineEvent, OfflineContentManager) -> Void] = [:]
-    var onEventCallback: ((_ event: Event) -> Void)?
+    var onEventCallback: ((_ event: Event, _ sender: String) -> Void)?
 
     func registerEvent<T: Event>(
         _ eventClass: Event.Type,
@@ -45,7 +45,7 @@ internal class OfflineContentManagerEventListenerProxy: NSObject {
 
 extension OfflineContentManagerEventListenerProxy: OfflineContentManagerListener {
     func onEvent(_ event: OfflineEvent, offlineContentManager: OfflineContentManager) {
-        onEventCallback?(event)
+        onEventCallback?(event, offlineContentManager.readableReference)
 
         var eventName = event.name
         // Remove "on" from the start of the string
@@ -53,6 +53,12 @@ extension OfflineContentManagerEventListenerProxy: OfflineContentManagerListener
         eventName = "BMP\(eventName)Event"
 
         eventRecordings[eventName]?(event, offlineContentManager)
+    }
+}
+
+private extension OfflineContentManager {
+    var readableReference: String {
+        "OfflineContentManager - \(Unmanaged.passUnretained(self).toOpaque())"
     }
 }
 #endif

@@ -17,7 +17,7 @@ import XCTest
 internal class EventListenerProxy: NSObject {
     private var eventRecordings: [String: (Event) -> Void] = [:]
     private var onHeartbeatCallback: (() -> Void)?
-    var onEventCallback: ((_ event: Event) -> Void)?
+    var onEventCallback: ((_ event: Event, _ sender: String) -> Void)?
 
     func registerEvent<T: Event>(
         _ eventClass: Event.Type,
@@ -49,7 +49,7 @@ internal class EventListenerProxy: NSObject {
 
 extension EventListenerProxy: PlayerListener {
     func onEvent(_ event: Event, player: Player) {
-        onEventCallback?(event)
+        onEventCallback?(event, player.readableReference)
 
         let className = String(describing: type(of: event))
         eventRecordings[className]?(event)
@@ -59,4 +59,10 @@ extension EventListenerProxy: PlayerListener {
 
 internal enum EventRecorderError: Error {
     case duplicateEventExpectation(eventName: String)
+}
+
+private extension Player {
+    var readableReference: String {
+        "Player - \(Unmanaged.passUnretained(self).toOpaque())"
+    }
 }

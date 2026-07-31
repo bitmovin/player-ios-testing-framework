@@ -25,7 +25,7 @@ public class AnyEventExpectation: MultipleEventsExpectation {
 extension AnyEventExpectation: CustomStringConvertible {
     public var description: String {
         singleExpectations
-            .map { $0.description }
+            .map(\.description)
             .joined(separator: " - ")
     }
 }

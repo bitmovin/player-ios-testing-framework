@@ -57,7 +57,7 @@ internal extension Sequence {
 
     func reduce<T>(
         _ initialResult: T,
-        _ nextPartialResult: ((T, Element) async throws -> T)
+        _ nextPartialResult: (T, Element) async throws -> T
     ) async rethrows -> T {
         var result = initialResult
         for element in self {
@@ -66,7 +66,7 @@ internal extension Sequence {
         return result
     }
 
-    // Taken from https://github.com/happn-app/CollectionConcurrencyKit/blob/903a94af1104ccf907982dd35f980b60d95025a3/Sources/CollectionConcurrencyKit.swift#L368
+    /// Taken from https://github.com/happn-app/CollectionConcurrencyKit/blob/903a94af1104ccf907982dd35f980b60d95025a3/Sources/CollectionConcurrencyKit.swift#L368
     /// Transform the sequence into an array of new values using
     /// an async closure that returns sequences. The returned sequences
     /// will be flattened into the array returned from this function.
@@ -98,6 +98,7 @@ internal extension Sequence {
             while let next = await group.next() {
                 res.append(next)
             }
+            // swiftformat:disable:next preferKeyPath
             return res.sorted { $0.offset < $1.offset }.flatMap { $0.value }
         }
     }
@@ -136,6 +137,7 @@ internal extension Sequence {
             while let next = try await group.next() {
                 res.append(next)
             }
+            // swiftformat:disable:next preferKeyPath
             return res.sorted { $0.offset < $1.offset }.flatMap { $0.value }
         }
     }

@@ -22,7 +22,7 @@ internal class OfflineWorld {
         return _currentOfflineTest
     }
 
-    private init() { }
+    private init() {}
 
     internal func startOfflineTest(
         offlineConfig: OfflineConfig = OfflineConfig(),

@@ -26,7 +26,7 @@ public class EventBagExpectation: MultipleEventsExpectation {
 extension EventBagExpectation: CustomStringConvertible {
     public var description: String {
         singleExpectations
-            .map { $0.description }
+            .map(\.description)
             .joined(separator: " - ")
     }
 }

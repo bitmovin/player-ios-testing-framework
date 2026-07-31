@@ -9,7 +9,7 @@
 import Foundation
 
 extension PlayerWorld {
-    internal func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
+    func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
         try await currentPlayerTest.stubNoInternet(testBlock)
     }
 }

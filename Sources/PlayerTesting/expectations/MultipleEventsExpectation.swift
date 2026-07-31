@@ -32,7 +32,6 @@ public class MultipleEventsExpectation {
         self.init(eventClasses.map(IsMemberExpectation.init))
     }
 
-    // swiftlint:disable:next unavailable_function
     public func isNextExpectationMet(receivedEvent: EventHolder<Event>) -> Bool {
         preconditionFailure("This method must be overridden")
     }

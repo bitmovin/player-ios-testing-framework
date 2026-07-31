@@ -33,16 +33,16 @@ import Foundation
 // - https://forums.swift.org/t/improving-the-ui-of-generics/22814#heading--reverse-generics
 public protocol SingleExpectation: CustomStringConvertible {
     var isFulfilled: Bool { get }
-    // This non generic eventClass is needed to access the Event class from the expectation without any generics
-    // in case we got a `MultipleEventsExpectation`. For a `SingleEventExpectation` still the generic event
-    // class `genericEventClass` should and can be used.
+    /// This non generic eventClass is needed to access the Event class from the expectation without any generics
+    /// in case we got a `MultipleEventsExpectation`. For a `SingleEventExpectation` still the generic event
+    /// class `genericEventClass` should and can be used.
     var eventClass: Event.Type { get }
 
     func maybeFulfillExpectation(receivedEvent: EventHolder<Event>) -> Bool
 }
 
 extension SingleExpectation {
-    internal func description(statusClosure: (_ isFulfilled: Bool) -> EventExpectationReportStatus) -> String {
+    func description(statusClosure: (_ isFulfilled: Bool) -> EventExpectationReportStatus) -> String {
         "\(statusClosure(isFulfilled).rawValue) \(String(describing: eventClass))"
     }
 }

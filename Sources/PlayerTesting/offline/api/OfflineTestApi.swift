@@ -15,12 +15,12 @@ public typealias OfflineContentManagerTestBlock = (OfflineContentManager) -> Voi
 public typealias OfflineTestBlock = () async throws -> Void
 
 internal typealias OfflineTestApi =
+    OfflineTestConvenienceApi &
     OfflineTestLifecycleApi &
-    OfflineTestSingleEventExpectationApi &
     OfflineTestMultipleEventsExpectationApi &
     OfflineTestRejectEventApi &
     OfflineTestRejectEventsApi &
-    OfflineTestConvenienceApi
+    OfflineTestSingleEventExpectationApi
 
 /// Provides all necessary API to conveniently write system tests for the Offline feature
 internal protocol OfflineTestLifecycleApi {

@@ -11,14 +11,14 @@ import Foundation
 import XCTest
 
 internal typealias PlayerTestApi =
+    PlayerTestCallPlayerAndExpectApi &
+    PlayerTestCallPlayerApi &
+    PlayerTestConvenienceApi &
     PlayerTestLifecycleApi &
-    PlayerTestSingleEventExpectationApi &
     PlayerTestMultipleEventsExpectationApi &
     PlayerTestRejectEventApi &
     PlayerTestRejectEventsApi &
-    PlayerTestCallPlayerAndExpectApi &
-    PlayerTestCallPlayerApi &
-    PlayerTestConvenienceApi
+    PlayerTestSingleEventExpectationApi
 
 public enum ViewHierarchyBuildMode {
     public static let full = Self.full(PlayerViewConfig())

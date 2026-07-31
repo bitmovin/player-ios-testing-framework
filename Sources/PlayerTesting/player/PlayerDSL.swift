@@ -396,8 +396,8 @@ public func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock) {
     PlayerWorld.sharedWorld.verifyPlayer(playerBlock)
 }
 
-/// Executes the passed block with the optional BitmovinPlayer as argument.
-/// Use this function to perform assertions in the scope of the Player.
+// Executes the passed block with the optional BitmovinPlayer as argument.
+// Use this function to perform assertions in the scope of the Player.
 
 @MainActor
 public func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
