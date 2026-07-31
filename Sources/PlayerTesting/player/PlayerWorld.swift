@@ -21,7 +21,7 @@ internal class PlayerWorld {
         return _currentPlayerTest
     }
 
-    private init() { }
+    private init() {}
 
     internal func startPlayerTest(
         config: PlayerConfig = PlayerConfig(),
@@ -35,12 +35,17 @@ internal class PlayerWorld {
         line: UInt = #line,
         _ testBlock: PlayerTestBlock
     ) async throws {
-        // In case the previous test failed, we need to do the tear down here
-        _currentPlayerTest?.tearDown()
+        let playerTest = PlayerTest()
+        _currentPlayerTest = playerTest
 
-        _currentPlayerTest = PlayerTest()
+        defer {
+            playerTest.tearDown()
+            if _currentPlayerTest === playerTest {
+                _currentPlayerTest = nil
+            }
+        }
 
-        try await currentPlayerTest?.startPlayerTest(
+        try await playerTest.startPlayerTest(
             config: config,
             buildViewHierarchyMode: buildViewHierarchyMode,
             globalTimeout: globalTimeout,
@@ -52,9 +57,6 @@ internal class PlayerWorld {
             line: line,
             testBlock
         )
-
-        currentPlayerTest?.tearDown()
-        _currentPlayerTest = nil
     }
 
     private func assertStartPlayerTest() {
