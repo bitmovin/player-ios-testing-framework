@@ -14,6 +14,7 @@ public class Condition {
     var isFulfilled: Bool {
         expectation.expectedFulfillmentCount == actualFulfillmentCount
     }
+
     var description: String {
         get {
             expectation.expectationDescription
@@ -22,6 +23,7 @@ public class Condition {
             expectation.expectationDescription = newValue
         }
     }
+
     private let expectation: XCTestExpectation
     private var actualFulfillmentCount: Int = 0
     var expectedFulfillmentCount: Int {
@@ -34,7 +36,7 @@ public class Condition {
     }
 
     init(description: String, expectedFulfillmentCount: Int = 1) {
-        expectation = XCTestExpectation(description: description)
+        self.expectation = XCTestExpectation(description: description)
         expectation.expectedFulfillmentCount = expectedFulfillmentCount
     }
 

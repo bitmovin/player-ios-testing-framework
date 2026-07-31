@@ -19,12 +19,10 @@ public class SingleEventExpectation<T: Event>: SingleExpectation {
         self.eventClass = T.self
     }
 
-    // swiftlint:disable:next unavailable_function
     public func maybeFulfillExpectation(receivedEvent: EventHolder<Event>) -> Bool {
         preconditionFailure("This method must be overridden")
     }
 
-    // swiftlint:disable:next unavailable_function
     internal func copy() -> SingleEventExpectation<T> {
         preconditionFailure("This method must be overridden")
     }

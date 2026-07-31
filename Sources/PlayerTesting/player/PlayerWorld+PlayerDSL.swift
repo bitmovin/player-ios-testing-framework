@@ -9,10 +9,9 @@
 import BitmovinPlayerCore
 import Foundation
 
-// swiftlint:disable:this function_default_parameter_at_end
 extension PlayerWorld {
     @discardableResult
-    internal func expectEvent<T: PlayerEvent>(
+    func expectEvent<T: PlayerEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -27,7 +26,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func expectEvent<T: SourceEvent>(
+    func expectEvent<T: SourceEvent>(
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -42,7 +41,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func expectEvent<T: PlayerEvent>(
+    func expectEvent<T: PlayerEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -57,7 +56,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func expectEvent<T: SourceEvent>(
+    func expectEvent<T: SourceEvent>(
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -72,7 +71,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func expectEvents(
+    func expectEvents(
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -87,7 +86,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func expectEvents(
+    func expectEvents(
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -101,7 +100,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func rejectEvent<T: PlayerEvent>(
+    func rejectEvent<T: PlayerEvent>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
@@ -110,7 +109,7 @@ extension PlayerWorld {
         try await currentPlayerTest.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
     }
 
-    internal func rejectEvent<T: SourceEvent>(
+    func rejectEvent<T: SourceEvent>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClass: T.Type,
@@ -119,7 +118,7 @@ extension PlayerWorld {
         try await currentPlayerTest.rejectEvent(file: file, line: line, eventClass, testContinuationBlock)
     }
 
-    internal func rejectEvent<T: PlayerEvent>(
+    func rejectEvent<T: PlayerEvent>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -128,7 +127,7 @@ extension PlayerWorld {
         try await currentPlayerTest.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
     }
 
-    internal func rejectEvent<T: SourceEvent>(
+    func rejectEvent<T: SourceEvent>(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -137,7 +136,7 @@ extension PlayerWorld {
         try await currentPlayerTest.rejectEvent(file: file, line: line, eventExpectation, testContinuationBlock)
     }
 
-    internal func rejectEvents(
+    func rejectEvents(
         file: StaticString = #file,
         line: UInt = #line,
         _ eventClasses: [Event.Type],
@@ -146,7 +145,7 @@ extension PlayerWorld {
         try await currentPlayerTest.rejectEvents(file: file, line: line, eventClasses, testContinuationBlock)
     }
 
-    internal func rejectEvents(
+    func rejectEvents(
         file: StaticString = #file,
         line: UInt = #line,
         _ multipleEventExpectation: MultipleEventsExpectation,
@@ -161,7 +160,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func callPlayerAndExpectEvent<T: Event>(
+    func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
@@ -178,7 +177,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func callPlayerAndExpectEvent<T: Event>(
+    func callPlayerAndExpectEvent<T: Event>(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
@@ -195,7 +194,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func callPlayerAndExpectEvents(
+    func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
@@ -212,7 +211,7 @@ extension PlayerWorld {
     }
 
     @discardableResult
-    internal func callPlayerAndExpectEvents(
+    func callPlayerAndExpectEvents(
         _ playerBlock: @escaping AsyncCallPlayerBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
@@ -228,27 +227,27 @@ extension PlayerWorld {
         )
     }
 
-    internal func callPlayer(_ playerBlock: @escaping CallPlayerBlock) {
+    func callPlayer(_ playerBlock: @escaping CallPlayerBlock) {
         currentPlayerTest.callPlayer(playerBlock)
     }
 
-    internal func callPlayer(_ playerBlock: @escaping AsyncCallPlayerBlock) async throws {
+    func callPlayer(_ playerBlock: @escaping AsyncCallPlayerBlock) async throws {
         try await currentPlayerTest.callPlayer(playerBlock)
     }
 
-    internal func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock) {
+    func verifyPlayer(_ playerBlock: @escaping CallPlayerBlock) {
         currentPlayerTest.verifyPlayer(playerBlock)
     }
 
-    internal func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
+    func safeVerifyPlayer(_ playerBlock: @escaping (Player?) -> Void) {
         currentPlayerTest.safeVerifyPlayer(playerBlock)
     }
 
-    internal func createSource(sourceConfig: SourceConfig) -> Source {
+    func createSource(sourceConfig: SourceConfig) -> Source {
         currentPlayerTest!.createSource(sourceConfig: sourceConfig)
     }
 
-    internal func load(
+    func load(
         _ source: Source,
         preloadAllSources: Bool = false,
         replayMode: ReplayMode = .playlist,
@@ -266,7 +265,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func load(
+    func load(
         _ sources: [Source],
         preloadAllSources: Bool = false,
         replayMode: ReplayMode = .playlist,
@@ -284,7 +283,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func load(
+    func load(
         _ sourceConfig: SourceConfig,
         preloadAllSources: Bool = false,
         replayMode: ReplayMode = .playlist,
@@ -302,7 +301,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func load(
+    func load(
         _ sourceConfigs: [SourceConfig],
         preloadAllSources: Bool = false,
         replayMode: ReplayMode = .playlist,
@@ -320,7 +319,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func load(
+    func load(
         _ playlistConfig: PlaylistConfig,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -334,7 +333,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func play(
+    func play(
         for time: TimeInterval,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -343,7 +342,7 @@ extension PlayerWorld {
         try await currentPlayerTest.play(for: time, timeout: timeout, file: file, line: line)
     }
 
-    internal func play(
+    func play(
         until time: TimeInterval,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
@@ -352,11 +351,11 @@ extension PlayerWorld {
         try await currentPlayerTest.play(until: time, timeout: timeout, file: file, line: line)
     }
 
-    internal func wait(for time: TimeInterval) async {
+    func wait(for time: TimeInterval) async {
         await currentPlayerTest.wait(for: time)
     }
 
-    internal func wait(
+    func wait(
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
@@ -365,11 +364,11 @@ extension PlayerWorld {
         await currentPlayerTest.wait(timeout: timeout, file: file, line: line, until: playerBlock)
     }
 
-    internal func deallocPlayer() {
+    func deallocPlayer() {
         currentPlayerTest.deallocPlayer()
     }
 
-    internal func callPlayerViewAndExpectEvents(
+    func callPlayerViewAndExpectEvents(
         _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
         _ multipleEventsExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
@@ -385,7 +384,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func callPlayerView(
+    func callPlayerView(
         _ playerViewBlock: @escaping (PlayerView) -> Void,
         file: StaticString = #file,
         line: UInt = #line
@@ -397,7 +396,7 @@ extension PlayerWorld {
         )
     }
 
-    internal func callPlayerView(
+    func callPlayerView(
         _ playerViewBlock: @escaping (PlayerView) async throws -> Void,
         file: StaticString = #file,
         line: UInt = #line

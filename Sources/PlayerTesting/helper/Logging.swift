@@ -1,4 +1,3 @@
-// swiftlint:disable:this file_name
 //
 // Bitmovin Player iOS SDK
 // Copyright (C) 2024, Bitmovin GmbH, All Rights Reserved

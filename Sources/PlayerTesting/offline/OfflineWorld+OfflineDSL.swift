@@ -16,7 +16,7 @@ extension OfflineWorld {
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
     @discardableResult
-    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventClass: T.Type,
@@ -40,7 +40,7 @@ extension OfflineWorld {
     /// version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
     @discardableResult
-    internal func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
+    func callOfflineContentManagerAndExpectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ eventExpectation: SingleEventExpectation<T>,
@@ -64,7 +64,7 @@ extension OfflineWorld {
     /// This is the race-condition-safe version of calling `callOfflineContentManager` and `expectEvent` after that.
     /// Useful when events are directly tied to calls in the `offlineContentManagerBlock`.
     @discardableResult
-    internal func callOfflineContentManagerAndExpectEvents(
+    func callOfflineContentManagerAndExpectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ offlineContentManagerBlock: @escaping OfflineContentManagerTestBlock,
         _ multipleEventsExpectation: MultipleEventsExpectation,
@@ -85,7 +85,7 @@ extension OfflineWorld {
     /// Listens for the specified Event to be emitted and blocks the calling thread until the event is
     /// received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock` is called.
     @discardableResult
-    internal func expectEvent<T: OfflineEvent>(
+    func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventClass: T.Type,
         timeout: TimeInterval,
@@ -105,7 +105,7 @@ extension OfflineWorld {
     /// is received or the timeout is reached. In the case where the event is received, the `eventHandlerBlock`
     /// is called.
     @discardableResult
-    internal func expectEvent<T: OfflineEvent>(
+    func expectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval,
@@ -126,7 +126,7 @@ extension OfflineWorld {
     /// In the case where the expectation is fulfilled, the `eventsHandlerBlock` is called with an ordered list of the
     /// Events
     @discardableResult
-    internal func expectEvents(
+    func expectEvents(
         _ offlineContentManager: OfflineContentManager,
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval,
@@ -144,7 +144,7 @@ extension OfflineWorld {
 
     /// Listens for the specified `OfflineEvent` while the test continues in the `testContinuationBlock`.
     /// If the event is received during execution of the `testContinuationBlock`, the test fails.
-    internal func rejectEvent<T: OfflineEvent>(
+    func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -162,7 +162,7 @@ extension OfflineWorld {
 
     /// Listens for the specified `SingleEventExpectation` while the test continues in the `testContinuationBlock`.
     /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
-    internal func rejectEvent<T: OfflineEvent>(
+    func rejectEvent<T: OfflineEvent>(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -180,7 +180,7 @@ extension OfflineWorld {
 
     /// Listens for the specified `MultipleEventsExpectation` while the test continues in the `testContinuationBlock`.
     /// If the `rejectedExpectation` fulfills during the `testContinuationBlock`, the test fails.
-    internal func rejectEvents(
+    func rejectEvents(
         _ offlineContentManager: OfflineContentManager,
         file: StaticString = #file,
         line: UInt = #line,
@@ -202,7 +202,7 @@ extension OfflineWorld {
     ///   - id: unique identifier for the given `SourceConfig` which must not change once provided.
     ///   - clean: reset the `OfflineContentManager` instance before returning it by
     ///   canceling the download and delete the data.
-    internal func getOfflineContentManager(
+    func getOfflineContentManager(
         sourceConfig: SourceConfig,
         id: String? = nil,
         clean: Bool = true
@@ -215,7 +215,7 @@ extension OfflineWorld {
     }
 
     /// Download content until progress
-    internal func downloadUntilProgress(
+    func downloadUntilProgress(
         _ offlineContentManager: OfflineContentManager,
         progress: Double,
         timeout: TimeInterval,
@@ -232,7 +232,7 @@ extension OfflineWorld {
     }
 
     /// Wait until the download of tracks has finished
-    internal func waitUntilDownloaded(
+    func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         tracks: OfflineTrackSelection,
         config: DownloadConfig = DownloadConfig.lowestQuality,
@@ -251,7 +251,7 @@ extension OfflineWorld {
     }
 
     /// Wait until the download finished
-    internal func waitUntilDownloaded(
+    func waitUntilDownloaded(
         _ offlineContentManager: OfflineContentManager,
         config: DownloadConfig = DownloadConfig.lowestQuality,
         timeout: TimeInterval,
