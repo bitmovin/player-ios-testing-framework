@@ -603,7 +603,9 @@ extension OfflineTest: OfflineTestConvenienceApi {
 
 private extension OfflineTest {
     private func cleanupTestData() async throws {
-        try await offlineContentManagers.forEach(resetOfflineContentManager)
+        for offlineContentManager in offlineContentManagers {
+            try await resetOfflineContentManager(offlineContentManager)
+        }
         offlineContentManagers = []
         offlineManager = nil
         playerTestLogger.reset()
