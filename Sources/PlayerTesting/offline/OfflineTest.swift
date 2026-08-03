@@ -1,11 +1,3 @@
-//
-// Bitmovin Player iOS SDK
-// Copyright (C) 2021, Bitmovin GmbH, All Rights Reserved
-//
-// This source code and its use and distribution, is subject to the terms
-// and conditions of the applicable license agreement.
-//
-
 #if os(iOS)
 import BitmovinPlayerCore
 import Foundation
@@ -611,7 +603,9 @@ extension OfflineTest: OfflineTestConvenienceApi {
 
 private extension OfflineTest {
     private func cleanupTestData() async throws {
-        try await offlineContentManagers.forEach(resetOfflineContentManager)
+        for offlineContentManager in offlineContentManagers {
+            try await resetOfflineContentManager(offlineContentManager)
+        }
         offlineContentManagers = []
         offlineManager = nil
         playerTestLogger.reset()

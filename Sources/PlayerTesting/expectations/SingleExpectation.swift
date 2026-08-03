@@ -1,11 +1,3 @@
-//
-// Bitmovin Player iOS SDK
-// Copyright (C) 2020, Bitmovin GmbH, All Rights Reserved
-//
-// This source code and its use and distribution, is subject to the terms
-// and conditions of the applicable license agreement.
-//
-
 import BitmovinPlayerCore
 import Foundation
 
@@ -25,7 +17,6 @@ import Foundation
 //
 // More details about happened discussions:
 // - https://stackoverflow.com/questions/35862869/swift-covariant-generics/35865954#35865954
-// - https://bitmovin.slack.com/archives/CGHA08TQD/p1585732397048300
 //
 // Resources:
 // - https://github.com/apple/swift/blob/master/docs/GenericsManifesto.md
