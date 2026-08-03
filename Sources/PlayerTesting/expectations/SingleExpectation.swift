@@ -17,7 +17,6 @@ import Foundation
 //
 // More details about happened discussions:
 // - https://stackoverflow.com/questions/35862869/swift-covariant-generics/35865954#35865954
-// - https://bitmovin.slack.com/archives/CGHA08TQD/p1585732397048300
 //
 // Resources:
 // - https://github.com/apple/swift/blob/master/docs/GenericsManifesto.md
