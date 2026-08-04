@@ -118,6 +118,7 @@ extension PlayerTest: PlayerTestLifecycleApi {
                 playerViewConfig: playerViewConfig
             )
 
+            playerView.backgroundColor = .black
             playerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             viewController.view = playerView
             return (playerView, viewController, window)
@@ -194,13 +195,35 @@ extension PlayerTest: PlayerTestLifecycleApi {
     private func buildViewController() -> (viewController: UIViewController, window: UIWindow) {
         let viewController = UIViewController()
 
-        let window = UIWindow()
+        let window = buildWindow()
         window.rootViewController = viewController
         // Integration tests relying on visibility checks (e.g. viewability) require the window
         // to be key, not only visible.
         window.makeKeyAndVisible()
 
         return (viewController, window)
+    }
+
+    private func buildWindow() -> UIWindow {
+        guard let windowScene = testHostWindowScene else {
+            // Legacy UIKit applications do not have connected scenes.
+            return UIWindow(frame: UIScreen.main.bounds)
+        }
+
+        // SwiftUI and scene-based UIKit applications require the test window to use their scene.
+        let window = UIWindow(windowScene: windowScene)
+        window.frame = windowScene.coordinateSpace.bounds
+        return window
+    }
+
+    private var testHostWindowScene: UIWindowScene? {
+        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+
+        return windowScenes.first {
+            $0.activationState == .foregroundActive && $0.windows.contains(where: \.isKeyWindow)
+        } ?? windowScenes.first {
+            $0.activationState == .foregroundActive
+        }
     }
 }
 
