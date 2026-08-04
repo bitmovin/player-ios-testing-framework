@@ -15,7 +15,5 @@ Pod::Spec.new do |s|
   s.swift_version = '5.9'
 
   s.dependency 'BitmovinPlayerCore', '~> 3.118'
-  s.dependency 'Nimble', '~> 12'
-  s.dependency 'Quick', '~> 7'
   s.dependency 'OHHTTPStubs/Swift', '~> 9'
 end
