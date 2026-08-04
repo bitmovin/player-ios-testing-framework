@@ -16,8 +16,6 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/bitmovin/player-ios-core", from: "3.118.0"),
-        .package(url: "https://github.com/Quick/Nimble", from: "12.0.0"),
-        .package(url: "https://github.com/Quick/Quick", from: "7.0.0"),
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", from: "9.0.0"),
     ],
     targets: [
@@ -27,8 +25,6 @@ let package = Package(
             name: "PlayerTesting",
             dependencies: [
                 .product(name: "BitmovinPlayerCore", package: "player-ios-core"),
-                "Quick",
-                "Nimble",
                 .product(name: "OHHTTPStubsSwift", package: "OHHTTPStubs"),
             ]
         )
