@@ -8,8 +8,8 @@ Pod::Spec.new do |s|
   s.author           = { 'Bitmovin' => 'david.steinacher@bitmovin.com' }
   s.source           = { git: 'https://github.com/bitmovin-engineering/player-ios-testing-framework.git', tag: s.version.to_s }
 
-  s.ios.deployment_target = '14.0'
-  s.tvos.deployment_target = '14.0'
+  s.ios.deployment_target = '15.0'
+  s.tvos.deployment_target = '15.0'
 
   s.source_files = 'Sources/**/*.swift'
   s.swift_version = '5.9'

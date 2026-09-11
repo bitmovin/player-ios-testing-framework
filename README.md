@@ -34,7 +34,7 @@ For an existing Xcode project:
 1. Add a **Unit Testing Bundle** target for iOS or tvOS.
 2. Add the `PlayerTesting` package product to that unit testing target only.
 3. Add the unit testing target to the **Test** action of the scheme used to run the tests.
-4. Make sure the test target uses a deployment target supported by both `PlayerTesting` and the application under test.
+4. Set the test target and host application deployment targets to iOS 15.0 or tvOS 15.0 or later, and ensure they meet the requirements of the application under test.
 
 ### Running on a Simulator
 
