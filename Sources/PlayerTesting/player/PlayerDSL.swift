@@ -39,19 +39,34 @@ public func startPlayerTest(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
+        eventClass,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvent<T: PlayerEvent>(
+    _ eventClass: T.Type,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.waitForEvent(
         eventClass,
         timeout: timeout,
         file: file,
@@ -61,19 +76,34 @@ public func expectEvent<T: PlayerEvent>(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
+        eventClass,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvent<T: SourceEvent>(
+    _ eventClass: T.Type,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.waitForEvent(
         eventClass,
         timeout: timeout,
         file: file,
@@ -83,19 +113,34 @@ public func expectEvent<T: SourceEvent>(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
+        eventExpectation,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvent<T: PlayerEvent>(
+    _ eventExpectation: SingleEventExpectation<T>,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.waitForEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
@@ -105,19 +150,34 @@ public func expectEvent<T: PlayerEvent>(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
+        eventExpectation,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvent<T: SourceEvent>(
+    _ eventExpectation: SingleEventExpectation<T>,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> T {
+    try await PlayerWorld.sharedWorld.waitForEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
@@ -127,19 +187,34 @@ public func expectEvent<T: SourceEvent>(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ eventClasses: Event.Type...,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
+        eventClasses,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvents(
+    _ eventClasses: Event.Type...,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.waitForEvents(
         eventClasses,
         timeout: timeout,
         file: file,
@@ -149,19 +224,34 @@ public func expectEvents(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ eventClasses: [Event.Type],
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
+        eventClasses,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvents(
+    _ eventClasses: [Event.Type],
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.waitForEvents(
         eventClasses,
         timeout: timeout,
         file: file,
@@ -171,19 +261,34 @@ public func expectEvents(
 }
 
 /// Listens for matching events and waits until they are received or the timeout expires.
-/// If provided, `afterStarting` runs after listeners attach, with events recorded throughout.
-/// The timeout starts after the closure returns, or immediately when no closure is provided.
-/// Errors from the closure propagate to the caller; listeners are removed on every exit.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ multipleEventExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line,
-    afterStarting: TestContinuationBlock? = nil
+    line: UInt = #line
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
+        multipleEventExpectation,
+        timeout: timeout,
+        file: file,
+        line: line
+    )
+}
+
+/// Attaches listeners before `afterStarting`, records events during it, then waits for remaining events.
+/// The timeout starts after the closure returns; listeners are removed on every exit.
+@MainActor
+@discardableResult
+public func waitForEvents(
+    _ multipleEventExpectation: MultipleEventsExpectation,
+    timeout: TimeInterval? = nil,
+    file: StaticString = #file,
+    line: UInt = #line,
+    afterStarting: @escaping TestContinuationBlock
+) async throws -> [Event] {
+    try await PlayerWorld.sharedWorld.waitForEvents(
         multipleEventExpectation,
         timeout: timeout,
         file: file,

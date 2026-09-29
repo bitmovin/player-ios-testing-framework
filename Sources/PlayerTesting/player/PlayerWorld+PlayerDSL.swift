@@ -7,10 +7,25 @@ extension PlayerWorld {
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> T {
         try await currentPlayerTest.expectEvent(
+            eventClass,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvent<T: PlayerEvent>(
+        _ eventClass: T.Type,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> T {
+        try await currentPlayerTest.waitForEvent(
             eventClass,
             timeout: timeout,
             file: file,
@@ -24,10 +39,25 @@ extension PlayerWorld {
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> T {
         try await currentPlayerTest.expectEvent(
+            eventClass,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvent<T: SourceEvent>(
+        _ eventClass: T.Type,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> T {
+        try await currentPlayerTest.waitForEvent(
             eventClass,
             timeout: timeout,
             file: file,
@@ -41,10 +71,25 @@ extension PlayerWorld {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> T {
         try await currentPlayerTest.expectEvent(
+            eventExpectation,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvent<T: PlayerEvent>(
+        _ eventExpectation: SingleEventExpectation<T>,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> T {
+        try await currentPlayerTest.waitForEvent(
             eventExpectation,
             timeout: timeout,
             file: file,
@@ -58,10 +103,25 @@ extension PlayerWorld {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> T {
         try await currentPlayerTest.expectEvent(
+            eventExpectation,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvent<T: SourceEvent>(
+        _ eventExpectation: SingleEventExpectation<T>,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> T {
+        try await currentPlayerTest.waitForEvent(
             eventExpectation,
             timeout: timeout,
             file: file,
@@ -75,10 +135,25 @@ extension PlayerWorld {
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> [Event] {
         try await currentPlayerTest.expectEvents(
+            eventClasses,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvents(
+        _ eventClasses: [Event.Type],
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> [Event] {
+        try await currentPlayerTest.waitForEvents(
             eventClasses,
             timeout: timeout,
             file: file,
@@ -92,10 +167,25 @@ extension PlayerWorld {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line,
-        afterStarting: TestContinuationBlock? = nil
+        line: UInt = #line
     ) async throws -> [Event] {
         try await currentPlayerTest.expectEvents(
+            multipleEventExpectation,
+            timeout: timeout,
+            file: file,
+            line: line
+        )
+    }
+
+    @discardableResult
+    func waitForEvents(
+        _ multipleEventExpectation: MultipleEventsExpectation,
+        timeout: TimeInterval? = nil,
+        file: StaticString = #file,
+        line: UInt = #line,
+        afterStarting: @escaping TestContinuationBlock
+    ) async throws -> [Event] {
+        try await currentPlayerTest.waitForEvents(
             multipleEventExpectation,
             timeout: timeout,
             file: file,
