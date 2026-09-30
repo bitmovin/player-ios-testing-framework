@@ -23,14 +23,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         try await currentPlayerTest.waitForEvent(
             eventClass,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -55,14 +55,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         try await currentPlayerTest.waitForEvent(
             eventClass,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -87,14 +87,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         try await currentPlayerTest.waitForEvent(
             eventExpectation,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -119,14 +119,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         try await currentPlayerTest.waitForEvent(
             eventExpectation,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -151,14 +151,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> [Event] {
         try await currentPlayerTest.waitForEvents(
             eventClasses,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -183,14 +183,14 @@ extension PlayerWorld {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> [Event] {
         try await currentPlayerTest.waitForEvents(
             multipleEventExpectation,
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 

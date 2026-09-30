@@ -255,7 +255,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
@@ -266,7 +266,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
             timeout: timeout ?? defaultTimeout,
             file: file,
             line: line,
-            onListenerAttachedBlock: afterStarting
+            onListenerAttachedBlock: whileListening
         )
     }
 
@@ -295,7 +295,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
@@ -306,7 +306,7 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
             timeout: timeout ?? defaultTimeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -366,7 +366,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
@@ -377,7 +377,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             timeout: timeout,
             file: file,
             line: line,
-            afterStarting: afterStarting
+            whileListening: whileListening
         )
     }
 
@@ -406,7 +406,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
         line: UInt = #line,
-        afterStarting: @escaping TestContinuationBlock
+        whileListening: @escaping TestContinuationBlock
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
@@ -417,7 +417,7 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             timeout: timeout ?? defaultTimeout,
             file: file,
             line: line,
-            onListenerAttachedBlock: afterStarting
+            onListenerAttachedBlock: whileListening
         )
     }
 
