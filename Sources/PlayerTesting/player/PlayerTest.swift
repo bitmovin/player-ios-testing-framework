@@ -235,27 +235,8 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
-    ) async throws -> T {
-        playerTestLogger.logFunctionStart()
-        defer {
-            playerTestLogger.logFunctionEnd()
-        }
-        return try await expectEventBlocking(
-            singleEventExpectation: eventExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line
-        )
-    }
-
-    @discardableResult
-    internal func waitForEvent<T: Event>(
-        _ eventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
         line: UInt = #line,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
@@ -275,33 +256,14 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
             playerTestLogger.logFunctionEnd()
         }
         return try await expectEvent(
-            PlainEventExpectation(eventClass),
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line
-        )
-    }
-
-    @discardableResult
-    internal func waitForEvent<T: Event>(
-        _ eventClass: T.Type,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        whileListening: @escaping TestContinuationBlock
-    ) async throws -> T {
-        playerTestLogger.logFunctionStart()
-        defer {
-            playerTestLogger.logFunctionEnd()
-        }
-        return try await waitForEvent(
             PlainEventExpectation(eventClass),
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -346,33 +308,14 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
             playerTestLogger.logFunctionEnd()
         }
         return try await expectEvents(
-            EventSequenceExpectation(eventClasses),
-            timeout: timeout,
-            file: file,
-            line: line
-        )
-    }
-
-    @discardableResult
-    internal func waitForEvents(
-        _ eventClasses: [Event.Type],
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
-        line: UInt = #line,
-        whileListening: @escaping TestContinuationBlock
-    ) async throws -> [Event] {
-        playerTestLogger.logFunctionStart()
-        defer {
-            playerTestLogger.logFunctionEnd()
-        }
-        return try await waitForEvents(
             EventSequenceExpectation(eventClasses),
             timeout: timeout,
             file: file,
@@ -386,27 +329,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
-    ) async throws -> [Event] {
-        playerTestLogger.logFunctionStart()
-        defer {
-            playerTestLogger.logFunctionEnd()
-        }
-        return try await expectEventsBlocking(
-            multipleEventsExpectation: multipleEventExpectation,
-            timeout: timeout ?? defaultTimeout,
-            file: file,
-            line: line
-        )
-    }
-
-    @discardableResult
-    internal func waitForEvents(
-        _ multipleEventExpectation: MultipleEventsExpectation,
-        timeout: TimeInterval? = nil,
-        file: StaticString = #file,
         line: UInt = #line,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
@@ -649,7 +573,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         defer {
             playerTestLogger.logFunctionEnd()
         }
-        return try await waitForEvent(
+        return try await expectEvent(
             eventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
@@ -713,7 +637,7 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         defer {
             playerTestLogger.logFunctionEnd()
         }
-        return try await waitForEvents(
+        return try await expectEvents(
             multipleEventsExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,

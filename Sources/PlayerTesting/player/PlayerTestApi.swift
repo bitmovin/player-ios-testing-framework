@@ -45,16 +45,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> T
-
-    @discardableResult
-    func waitForEvent<T: PlayerEvent>(
-        _ eventClass: T.Type,
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -62,16 +54,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> T
-
-    @discardableResult
-    func waitForEvent<T: SourceEvent>(
-        _ eventClass: T.Type,
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -79,16 +63,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> T
-
-    @discardableResult
-    func waitForEvent<T: PlayerEvent>(
-        _ eventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -96,16 +72,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> T
-
-    @discardableResult
-    func waitForEvent<T: SourceEvent>(
-        _ eventExpectation: SingleEventExpectation<T>,
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 }
 
@@ -116,16 +84,8 @@ internal protocol PlayerTestMultipleEventsExpectationApi {
         _ eventClasses: [Event.Type],
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> [Event]
-
-    @discardableResult
-    func waitForEvents(
-        _ eventClasses: [Event.Type],
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> [Event]
 
     @discardableResult
@@ -133,16 +93,8 @@ internal protocol PlayerTestMultipleEventsExpectationApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
-    ) async throws -> [Event]
-
-    @discardableResult
-    func waitForEvents(
-        _ multipleEventExpectation: MultipleEventsExpectation,
-        timeout: TimeInterval?,
-        file: StaticString,
         line: UInt,
-        whileListening: @escaping TestContinuationBlock
+        whileListening: TestContinuationBlock?
     ) async throws -> [Event]
 }
 

@@ -38,35 +38,23 @@ public func startPlayerTest(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for a matching event and returns it.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
-        eventClass,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvent<T: PlayerEvent>(
-    _ eventClass: T.Type,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> T {
-    try await PlayerWorld.sharedWorld.waitForEvent(
         eventClass,
         timeout: timeout,
         file: file,
@@ -75,35 +63,23 @@ public func waitForEvent<T: PlayerEvent>(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for a matching event and returns it.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventClass: T.Type,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
-        eventClass,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvent<T: SourceEvent>(
-    _ eventClass: T.Type,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> T {
-    try await PlayerWorld.sharedWorld.waitForEvent(
         eventClass,
         timeout: timeout,
         file: file,
@@ -112,35 +88,23 @@ public func waitForEvent<T: SourceEvent>(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for a matching event and returns it.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvent<T: PlayerEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
-        eventExpectation,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvent<T: PlayerEvent>(
-    _ eventExpectation: SingleEventExpectation<T>,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> T {
-    try await PlayerWorld.sharedWorld.waitForEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
@@ -149,72 +113,48 @@ public func waitForEvent<T: PlayerEvent>(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for a matching event and returns it.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvent<T: SourceEvent>(
     _ eventExpectation: SingleEventExpectation<T>,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> T {
     try await PlayerWorld.sharedWorld.expectEvent(
         eventExpectation,
         timeout: timeout,
         file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvent<T: SourceEvent>(
-    _ eventExpectation: SingleEventExpectation<T>,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> T {
-    try await PlayerWorld.sharedWorld.waitForEvent(
-        eventExpectation,
-        timeout: timeout,
-        file: file,
         line: line,
         whileListening: whileListening
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for the specified events in order and returns them.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ eventClasses: Event.Type...,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
-        eventClasses,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvents(
-    _ eventClasses: Event.Type...,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> [Event] {
-    try await PlayerWorld.sharedWorld.waitForEvents(
         eventClasses,
         timeout: timeout,
         file: file,
@@ -223,35 +163,23 @@ public func waitForEvents(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for the specified events in order and returns them.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ eventClasses: [Event.Type],
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
-        eventClasses,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvents(
-    _ eventClasses: [Event.Type],
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> [Event] {
-    try await PlayerWorld.sharedWorld.waitForEvents(
         eventClasses,
         timeout: timeout,
         file: file,
@@ -260,35 +188,23 @@ public func waitForEvents(
     )
 }
 
-/// Listens for matching events and waits until they are received or the timeout expires.
+/// Waits for the specified expectation and returns its matching events.
+///
+/// If `whileListening` is provided, starts listening before running the closure and keeps any matching
+/// events received while it runs. The timeout starts when the closure returns. If the closure is omitted
+/// or `nil`, starts waiting immediately.
+///
+/// Rethrows errors from the closure and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func expectEvents(
     _ multipleEventExpectation: MultipleEventsExpectation,
     timeout: TimeInterval? = nil,
     file: StaticString = #file,
-    line: UInt = #line
+    line: UInt = #line,
+    whileListening: TestContinuationBlock? = nil
 ) async throws -> [Event] {
     try await PlayerWorld.sharedWorld.expectEvents(
-        multipleEventExpectation,
-        timeout: timeout,
-        file: file,
-        line: line
-    )
-}
-
-/// Attaches listeners before `whileListening`, records events during it, then waits for remaining events.
-/// The timeout starts after the closure returns; listeners are removed on every exit.
-@MainActor
-@discardableResult
-public func waitForEvents(
-    _ multipleEventExpectation: MultipleEventsExpectation,
-    timeout: TimeInterval? = nil,
-    file: StaticString = #file,
-    line: UInt = #line,
-    whileListening: @escaping TestContinuationBlock
-) async throws -> [Event] {
-    try await PlayerWorld.sharedWorld.waitForEvents(
         multipleEventExpectation,
         timeout: timeout,
         file: file,
@@ -386,10 +302,11 @@ public func rejectEvents(
     )
 }
 
-/// Starts listening for the specified Event before executing the passed playerBlock.
-/// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
-/// version of calling callPlayer and expectEvent after that.
-/// Useful when events are directly tied to calls in the playerBlock.
+/// Waits for a matching event and returns it.
+///
+/// Starts listening before running `playerBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Rethrows errors from the block and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerAndExpectEvent<T: Event>(
@@ -408,10 +325,11 @@ public func callPlayerAndExpectEvent<T: Event>(
     )
 }
 
-/// Starts listening for the specified SingleEventExpectation before executing the passed playerBlock.
-/// When the event is received, the eventHandlerBlock is called. This is the race-condition-safe
-/// version of calling callPlayer and expectEvent after that.
-/// Useful when events are directly tied to calls in the playerBlock.
+/// Waits for a matching event and returns it.
+///
+/// Starts listening before running `playerBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Rethrows errors from the block and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerAndExpectEvent<T: Event>(
@@ -430,10 +348,11 @@ public func callPlayerAndExpectEvent<T: Event>(
     )
 }
 
-/// Starts listening for the specified Events before executing the passed playerBlock.
-/// When the events are received in the specified order, the eventsHandlerBlock is called.
-/// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
-/// Useful when events are directly tied to calls in the playerBlock.
+/// Waits for the specified events in order and returns them.
+///
+/// Starts listening before running `playerBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Rethrows errors from the block and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerAndExpectEvents(
@@ -452,10 +371,11 @@ public func callPlayerAndExpectEvents(
     )
 }
 
-/// Starts listening for the specified Events before executing the passed playerBlock.
-/// When the events are received in the specified order, the eventsHandlerBlock is called.
-/// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
-/// Useful when events are directly tied to calls in the playerBlock.
+/// Waits for the specified events in order and returns them.
+///
+/// Starts listening before running `playerBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Rethrows errors from the block and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerAndExpectEvents(
@@ -474,10 +394,11 @@ public func callPlayerAndExpectEvents(
     )
 }
 
-/// Starts listening for the specified MultipleEventsExpectation before executing the passed playerBlock.
-/// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
-/// This is the race-condition-safe version of calling callPlayer and expectEvents after that.
-/// Useful when events are directly tied to calls in the playerApiBlock.
+/// Waits for the specified expectation and returns its matching events.
+///
+/// Starts listening before running `playerBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Rethrows errors from the block and always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerAndExpectEvents(
@@ -737,8 +658,11 @@ public func stubNoInternet(_ testBlock: TestContinuationBlock) async throws {
     try await PlayerWorld.sharedWorld.stubNoInternet(testBlock)
 }
 
-/// Starts listening for the specified MultipleEventsExpectation before executing the passed playerViewBlock.
-/// When the expectation is fulfilled in the specified order, the eventsHandlerBlock is called.
+/// Waits for the specified expectation and returns its matching events.
+///
+/// Starts listening before running `playerViewBlock` and keeps any matching events received while it runs.
+/// Once the block returns, waits for any remaining events within the given timeout.
+/// Always removes the listeners before returning or throwing.
 @MainActor
 @discardableResult
 public func callPlayerViewAndExpectEvents(

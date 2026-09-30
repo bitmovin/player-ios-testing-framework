@@ -113,10 +113,10 @@ let events = try await callPlayerAndExpectEvents({ player in
 
 #### Expectations Around Async Work
 
-Pass an `whileListening` closure to `waitForEvent` or `waitForEvents` when an operation contains its own event waits. You can use trailing-closure syntax:
+Pass a `whileListening` closure to `expectEvent` or `expectEvents` when an operation contains its own event waits. You can use trailing-closure syntax:
 
 ```swift
-try await waitForEvent(PlaybackFinishedEvent.self) {
+try await expectEvent(PlaybackFinishedEvent.self) {
     try await callPlayerAndExpectEvent({ player in
             player.seek(time: player.duration - 3)
         },
@@ -127,7 +127,7 @@ try await waitForEvent(PlaybackFinishedEvent.self) {
 
 The finish listener attaches before the closure runs and records matching events throughout it. After the closure returns, the outer expectation waits for any remaining events with its own timeout. Here, seeking and the remaining playback each get a separate timeout instead of sharing one. The test's global timeout still applies.
 
-The required `whileListening` closure is also available for `waitForEvents`, including ordered sequences, arrays, and event groups. Each expectation keeps its own ordering rules; nesting does not impose an order between the inner and outer expectations. Errors from the closure propagate to the caller, and listeners are removed on every exit. The existing `expectEvent` and `expectEvents` helpers keep their original signatures and wait immediately.
+The optional `whileListening` closure is also available for `expectEvents`, including ordered sequences, arrays, and event groups. Each expectation keeps its own ordering rules; nesting does not impose an order between the inner and outer expectations. Errors from the closure propagate to the caller, and listeners are removed on every exit. Omit `whileListening` (or pass `nil`) to start waiting immediately.
 
 #### Single Event Expectations
 
