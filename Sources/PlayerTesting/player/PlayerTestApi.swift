@@ -45,7 +45,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -53,7 +54,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -61,7 +63,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 
     @discardableResult
@@ -69,7 +72,8 @@ internal protocol PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> T
 }
 
@@ -80,7 +84,8 @@ internal protocol PlayerTestMultipleEventsExpectationApi {
         _ eventClasses: [Event.Type],
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> [Event]
 
     @discardableResult
@@ -88,7 +93,8 @@ internal protocol PlayerTestMultipleEventsExpectationApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval?,
         file: StaticString,
-        line: UInt
+        line: UInt,
+        whileListening: TestContinuationBlock?
     ) async throws -> [Event]
 }
 

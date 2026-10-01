@@ -235,7 +235,8 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         _ eventExpectation: SingleEventExpectation<T>,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
@@ -245,7 +246,8 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
             singleEventExpectation: eventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
-            line: line
+            line: line,
+            onListenerAttachedBlock: whileListening
         )
     }
 
@@ -254,7 +256,8 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
         _ eventClass: T.Type,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> T {
         playerTestLogger.logFunctionStart()
         defer {
@@ -264,7 +267,8 @@ extension PlayerTest: PlayerTestSingleEventExpectationApi {
             PlainEventExpectation(eventClass),
             timeout: timeout ?? defaultTimeout,
             file: file,
-            line: line
+            line: line,
+            whileListening: whileListening
         )
     }
 
@@ -304,7 +308,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         _ eventClasses: [Event.Type],
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
@@ -314,7 +319,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             EventSequenceExpectation(eventClasses),
             timeout: timeout,
             file: file,
-            line: line
+            line: line,
+            whileListening: whileListening
         )
     }
 
@@ -323,7 +329,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
         _ multipleEventExpectation: MultipleEventsExpectation,
         timeout: TimeInterval? = nil,
         file: StaticString = #file,
-        line: UInt = #line
+        line: UInt = #line,
+        whileListening: TestContinuationBlock? = nil
     ) async throws -> [Event] {
         playerTestLogger.logFunctionStart()
         defer {
@@ -333,7 +340,8 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             multipleEventsExpectation: multipleEventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
-            line: line
+            line: line,
+            onListenerAttachedBlock: whileListening
         )
     }
 
@@ -385,22 +393,24 @@ extension PlayerTest: PlayerTestMultipleEventsExpectationApi {
             }
         }
 
+        defer {
+            multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
+                if let source = (singleEventExpectation as? SingleSourceEventExpectation)?.source {
+                    sourceEventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
+                    source.remove(listener: sourceEventListenerProxy)
+                } else {
+                    eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
+                }
+            }
+
+            player?.remove(listener: eventListenerProxy)
+        }
+
         try await onListenerAttachedBlock?()
 
         activeConditions.append(condition)
         await condition.wait(timeout: timeout)
         activeConditions.removeAll { $0 === condition }
-
-        multipleEventsExpectation.singleExpectations.forEach { singleEventExpectation in
-            if let source = (singleEventExpectation as? SingleSourceEventExpectation)?.source {
-                sourceEventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
-                source.remove(listener: sourceEventListenerProxy)
-            } else {
-                eventListenerProxy.unregisterEvent(singleEventExpectation.eventClass)
-            }
-        }
-
-        player?.remove(listener: eventListenerProxy)
 
         guard condition.isFulfilled else {
             XCTFail("Expectation was not met: \(condition.description)", file: file, line: line)
@@ -563,8 +573,8 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         defer {
             playerTestLogger.logFunctionEnd()
         }
-        return try await expectEventBlocking(
-            singleEventExpectation: eventExpectation,
+        return try await expectEvent(
+            eventExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
             line: line
@@ -627,8 +637,8 @@ extension PlayerTest: PlayerTestCallPlayerAndExpectApi {
         defer {
             playerTestLogger.logFunctionEnd()
         }
-        return try await expectEventsBlocking(
-            multipleEventsExpectation: multipleEventsExpectation,
+        return try await expectEvents(
+            multipleEventsExpectation,
             timeout: timeout ?? defaultTimeout,
             file: file,
             line: line
